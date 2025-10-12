@@ -1,130 +1,111 @@
-'use client';
+export default function Page() {
+	return (
+		<div className="min-h-screen bg-gray-a12 py-12 px-4 sm:px-6 lg:px-8">
+			<div className="max-w-3xl mx-auto">
+				<div className="text-center mb-12">
+					<h1 className="text-8 font-bold text-gray-9 mb-4">
+						Welcome to Your Whop App
+					</h1>
+					<p className="text-4 text-gray-6">
+						Follow these steps to get started with your Whop application
+					</p>
+				</div>
 
-import Link from "next/link";
-import { signIn } from "next-auth/react";
+				<div className="space-y-8">
+					<div className="bg-white p-6 rounded-lg shadow-md">
+						<h2 className="text-5 font-semibold text-gray-9 mb-4 flex items-center">
+							<span className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-accent-9 text-white mr-3">
+								1
+							</span>
+							Create your Whop app
+						</h2>
+						<p className="text-gray-6 ml-11">
+							Go to your{" "}
+							<a
+								href="https://whop.com/dashboard"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-accent-9 hover:text-accent-10 underline"
+							>
+								Whop Dashboard
+							</a>{" "}
+							and create a new app in the Developer section.
+						</p>
+					</div>
 
-export default function Home() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Navigation */}
-      <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                FormBuilder
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/dashboard"
-                className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Dashboard
-              </Link>
-              <button
-                onClick={() => signIn('whop')}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                Sign in with Whop
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+					<div className="bg-white p-6 rounded-lg shadow-md">
+						<h2 className="text-5 font-semibold text-gray-9 mb-4 flex items-center">
+							<span className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-accent-9 text-white mr-3">
+								2
+							</span>
+							Set up environment variables
+						</h2>
+						<p className="text-gray-6 ml-11 mb-4">
+							Copy the .env file from your dashboard and create a new .env file
+							in your project root. This will contain all the necessary
+							environment variables for your app.
+						</p>
+						{process.env.NODE_ENV === "development" && (
+							<div className="text-gray-6 ml-11">
+								<pre>
+									<code>
+										WHOP_API_KEY={process.env.WHOP_API_KEY?.slice(0, 5)}...
+										<br />
+										NEXT_PUBLIC_WHOP_AGENT_USER_ID=
+										{process.env.NEXT_PUBLIC_WHOP_AGENT_USER_ID}
+										<br />
+										NEXT_PUBLIC_WHOP_APP_ID=
+										{process.env.NEXT_PUBLIC_WHOP_APP_ID}
+										<br />
+										NEXT_PUBLIC_WHOP_COMPANY_ID=
+										{process.env.NEXT_PUBLIC_WHOP_COMPANY_ID}
+									</code>
+								</pre>
+							</div>
+						)}
+					</div>
 
-      {/* Hero Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-            Build Beautiful Forms
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              In Minutes
-            </span>
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
-            Create, customize, and manage forms with our intuitive drag-and-drop builder. 
-            Collect responses, analyze data, and grow your business.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={() => signIn('whop')}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg text-lg font-medium transition-colors shadow-lg hover:shadow-xl"
-            >
-              Sign in with Whop
-            </button>
-            <Link
-              href="/dashboard"
-              className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-8 py-4 rounded-lg text-lg font-medium transition-colors"
-            >
-              View Dashboard
-            </Link>
-          </div>
-        </div>
+					<div className="bg-white p-6 rounded-lg shadow-md">
+						<h2 className="text-5 font-semibold text-gray-9 mb-4 flex items-center">
+							<span className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-accent-9 text-white mr-3">
+								3
+							</span>
+							Install your app into your whop
+						</h2>
+						<p className="text-gray-6 ml-11">
+							{process.env.NEXT_PUBLIC_WHOP_APP_ID ? (
+								<a
+									href={`https://whop.com/apps/${process.env.NEXT_PUBLIC_WHOP_APP_ID}/install`}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="text-accent-9 hover:text-accent-10 underline"
+								>
+									Click here to install your app
+								</a>
+							) : (
+								<span className="text-amber-600">
+									Please set your environment variables to see the installation
+									link
+								</span>
+							)}
+						</p>
+					</div>
+				</div>
 
-        {/* Features Grid */}
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Drag & Drop Builder
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Create forms visually with our intuitive drag-and-drop interface. No coding required.
-            </p>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Real-time Analytics
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Track form performance with detailed analytics and response insights.
-            </p>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Secure & Reliable
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Enterprise-grade security with reliable data storage and backup.
-            </p>
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="mt-20 text-center">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 md:p-12 text-white">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to Get Started?
-            </h2>
-            <p className="text-xl mb-8 opacity-90">
-              Join thousands of users who trust FormBuilder for their form needs.
-            </p>
-            <button
-              onClick={() => signIn('whop')}
-              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-medium transition-colors shadow-lg hover:shadow-xl"
-            >
-              Sign in with Whop
-            </button>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
+				<div className="mt-12 text-center text-2 text-gray-5">
+					<p>
+						Need help? Visit the{" "}
+						<a
+							href="https://dev.whop.com"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="text-accent-9 hover:text-accent-10 underline"
+						>
+							Whop Documentation
+						</a>
+					</p>
+				</div>
+			</div>
+		</div>
+	);
 }
