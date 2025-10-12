@@ -1,10 +1,47 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import Image from 'next/image';
+import { useAuth } from '@/hooks/useAuth';
+import { signIn, signOut } from 'next-auth/react';
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
+  const { isAuthenticated, isLoading, user, role, isAdmin, whopData } = useAuth();
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            Welcome to FormBuilder
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            Please sign in with Whop to access your dashboard.
+          </p>
+          <button
+            onClick={() => signIn('whop')}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+          >
+            Sign in with Whop
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const stats = [
     { name: 'Total Forms', value: '24', change: '+4.75%', changeType: 'positive' },
@@ -86,13 +123,31 @@ export default function DashboardPage() {
               <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                 Create Form
               </button>
-              <div className="relative">
-                <button className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                  <img
-                    className="h-8 w-8 rounded-full"
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                    alt="User avatar"
-                  />
+              <div className="flex items-center space-x-3">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {user?.name || user?.email}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                    {role} {isAdmin && '👑'}
+                  </p>
+                </div>
+                <div className="relative">
+                  <button className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <Image
+                      className="h-8 w-8 rounded-full"
+                      src={user?.image || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
+                      alt="User avatar"
+                      width={32}
+                      height={32}
+                    />
+                  </button>
+                </div>
+                <button
+                  onClick={() => signOut()}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-sm"
+                >
+                  Sign Out
                 </button>
               </div>
             </div>
@@ -108,11 +163,18 @@ export default function DashboardPage() {
             <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
                 <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  Welcome back, John! 👋
+                  Welcome back, {user?.name || user?.email}! 👋
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Here's what's happening with your forms today.
+                  Here&apos;s what&apos;s happening with your forms today.
+                  {isAdmin && <span className="ml-2 text-blue-600 dark:text-blue-400">(Admin View)</span>}
                 </p>
+                {whopData && (
+                  <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                    <p>Whop ID: {whopData.id}</p>
+                    {whopData.email && <p>Email: {whopData.email}</p>}
+                  </div>
+                )}
               </div>
             </div>
 

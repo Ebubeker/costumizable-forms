@@ -1,4 +1,7 @@
+'use client';
+
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 export default function Home() {
   return (
@@ -14,17 +17,17 @@ export default function Home() {
             </div>
             <div className="flex items-center space-x-4">
               <Link
-                href="/login"
+                href="/dashboard"
                 className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
-                Sign In
+                Dashboard
               </Link>
-              <Link
-                href="/register"
+              <button
+                onClick={() => signIn('whop')}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
-                Get Started
-              </Link>
+                Sign in with Whop
+              </button>
             </div>
           </div>
         </div>
@@ -44,12 +47,12 @@ export default function Home() {
             Collect responses, analyze data, and grow your business.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/register"
+            <button
+              onClick={() => signIn('whop')}
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg text-lg font-medium transition-colors shadow-lg hover:shadow-xl"
             >
-              Start Building Forms
-            </Link>
+              Sign in with Whop
+            </button>
             <Link
               href="/dashboard"
               className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-8 py-4 rounded-lg text-lg font-medium transition-colors"
@@ -113,12 +116,12 @@ export default function Home() {
             <p className="text-xl mb-8 opacity-90">
               Join thousands of users who trust FormBuilder for their form needs.
             </p>
-            <Link
-              href="/register"
+            <button
+              onClick={() => signIn('whop')}
               className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-medium transition-colors shadow-lg hover:shadow-xl"
             >
-              Create Your First Form
-            </Link>
+              Sign in with Whop
+            </button>
           </div>
         </div>
       </main>

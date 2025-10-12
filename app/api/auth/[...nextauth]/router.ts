@@ -13,7 +13,7 @@ const WhopProvider = whopApi.oauth.authJsProvider({
 const handler = NextAuth({
   providers: [WhopProvider],
   callbacks: {
-    async jwt({ token, account, user }) {
+    async jwt({ token, account }) {
       if (account) {
         token.access_token = account.access_token
         
@@ -44,8 +44,8 @@ const handler = NextAuth({
       return token
     },
     async session({ session, token }) {
-      session.access_token = token.access_token
-      session.user.role = token.role
+      session.access_token = token.access_token as string
+      session.user.role = token.role as string
       session.user.whopData = token.whopUser
       return session
     },
