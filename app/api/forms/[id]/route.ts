@@ -223,10 +223,29 @@ export async function DELETE(
 ) {
 	try {
 		const { id } = await params;
-		// Soft delete by setting is_active to false
+
+		// Delete form responses first (if any)
+		await supabaseAdmin
+			.from('form_responses')
+			.delete()
+			.eq('form_id', id);
+
+		// Delete form fields
+		await supabaseAdmin
+			.from('form_fields')
+			.delete()
+			.eq('form_id', id);
+
+		// Delete form steps
+		await supabaseAdmin
+			.from('form_steps')
+			.delete()
+			.eq('form_id', id);
+
+		// Finally delete the form itself
 		const { error } = await supabaseAdmin
 			.from('forms')
-			.update({ is_active: false })
+			.delete()
 			.eq('id', id);
 
 		if (error) {

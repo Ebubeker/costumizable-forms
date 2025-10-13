@@ -182,7 +182,7 @@ export default function AllLeadsView({ companyId, userId }: AllLeadsViewProps) {
 								<div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
 									<BarChart3 className="h-5 w-5 text-white" />
 								</div>
-								<h2 className="text-3xl font-bold text-foreground tracking-tight">Lead Analytics</h2>
+								<h2 className="text-3xl font-bold text-foreground tracking-tight">Leads</h2>
 							</div>
 							<p className="text-muted-foreground text-lg">
 								Track and analyze all form submissions across your community

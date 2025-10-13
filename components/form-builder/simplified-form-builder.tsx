@@ -76,7 +76,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 
 	// Branding settings
 	const [logoUrl, setLogoUrl] = useState("");
-	const [primaryColor, setPrimaryColor] = useState("#F6EDE4");
+	const [buttonColor, setButtonColor] = useState("#F6EDE4");
 	const [backgroundColor, setBackgroundColor] = useState("transparent");
 	const [useDefaultColors, setUseDefaultColors] = useState(true);
 	const [fontFamily, setFontFamily] = useState("Arial");
@@ -93,8 +93,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 	);
 
 	// Color picker state
-	const [showColorPicker, setShowColorPicker] = useState<'primary' | 'background' | null>(null);
-	const [tempColor, setTempColor] = useState(primaryColor);
+	const [showColorPicker, setShowColorPicker] = useState<'button' | 'background' | null>(null);
 
 	// Preview modal state
 	const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -108,7 +107,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 
 	// Local branding settings
 	const [localLogoUrl, setLocalLogoUrl] = useState("");
-	const [localPrimaryColor, setLocalPrimaryColor] = useState("#F6EDE4");
+	const [localButtonColor, setLocalButtonColor] = useState("#F6EDE4");
 	const [localBackgroundColor, setLocalBackgroundColor] = useState("transparent");
 	const [localUseDefaultColors, setLocalUseDefaultColors] = useState(true);
 	const [localFontFamily, setLocalFontFamily] = useState("Arial");
@@ -121,11 +120,11 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 		setFields(localFields);
 		setSteps(localSteps);
 		setLogoUrl(localLogoUrl);
-		setPrimaryColor(localPrimaryColor);
+		setButtonColor(localButtonColor);
 		setBackgroundColor(localBackgroundColor);
 		setFontFamily(localFontFamily);
 		setUseDefaultColors(localUseDefaultColors);
-	}, [localFormTitle, localFormDescription, localFormType, localFields, localSteps, localLogoUrl, localPrimaryColor, localBackgroundColor, localFontFamily, localUseDefaultColors]);
+	}, [localFormTitle, localFormDescription, localFormType, localFields, localSteps, localLogoUrl, localButtonColor, localBackgroundColor, localFontFamily, localUseDefaultColors]);
 
 	// Helper function to get field descriptions
 	const getFieldDescription = useCallback((fieldType: SimplifiedFormField['type']) => {
@@ -264,7 +263,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 	];
 
 	// Color presets
-	const primaryColorPresets = [
+	const buttonColorPresets = [
 		{ name: "Warm Cream", value: "#F6EDE4" },
 		{ name: "Golden Beige", value: "#F6E5BA" },
 		{ name: "Peach", value: "#F3D2B3" },
@@ -328,8 +327,8 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 				const settings = form.settings || {};
 				setLogoUrl(settings.logoUrl || "");
 				setLocalLogoUrl(settings.logoUrl || "");
-				setPrimaryColor(settings.primaryColor || "#645EFF");
-				setLocalPrimaryColor(settings.primaryColor || "#645EFF");
+				setButtonColor(settings.primaryColor || "#645EFF");
+				setLocalButtonColor(settings.primaryColor || "#645EFF");
 				setBackgroundColor(settings.backgroundColor || "transparent");
 				setLocalBackgroundColor(settings.backgroundColor || "transparent");
 				setFontFamily(settings.fontFamily || "Arial");
@@ -412,7 +411,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 				use_default_colors: localUseDefaultColors,
 				settings: {
 					logoUrl: localLogoUrl,
-					primaryColor: localPrimaryColor,
+					primaryColor: localButtonColor,
 					backgroundColor: localBackgroundColor,
 					fontFamily: localFontFamily
 				},
@@ -474,14 +473,40 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 			? Math.max(...relevantFields.map(field => field.order_index || 0))
 			: -1;
 
+		// Define default labels and placeholders for each field type
+		const getFieldDefaults = (fieldType: SimplifiedFormField['type']) => {
+			switch (fieldType) {
+				case 'text':
+					return { label: 'Text', placeholder: 'Enter text...' };
+				case 'email':
+					return { label: 'Email', placeholder: 'Enter your email address...' };
+				case 'phone':
+					return { label: 'Phone', placeholder: 'Enter your phone number...' };
+				case 'select':
+					return { label: 'Select Option', placeholder: 'Choose an option...' };
+				case 'checkbox':
+					return { label: 'Checkbox', placeholder: '' };
+				case 'textarea':
+					return { label: 'Message', placeholder: 'Enter your message...' };
+				case 'heading':
+					return { label: 'Heading', placeholder: '', content: 'Your heading text' };
+				case 'paragraph':
+					return { label: 'Paragraph', placeholder: '', content: 'Your paragraph text' };
+				default:
+					return { label: 'Field Label', placeholder: 'Enter placeholder...' };
+			}
+		};
+
+		const defaults = getFieldDefaults(type);
+
 		const newField: SimplifiedFormField = {
 			id: `field-${Date.now()}`,
 			type,
-			label: type === 'heading' ? 'Heading' : type === 'paragraph' ? 'Paragraph' : 'Field Label',
-			placeholder: type === 'heading' || type === 'paragraph' ? '' : 'Enter placeholder...',
-			content: type === 'heading' ? 'Your heading text' : type === 'paragraph' ? 'Your paragraph text' : '',
+			label: defaults.label,
+			placeholder: defaults.placeholder,
+			content: defaults.content || '',
 			required: false,
-			options: type === "select" ? [] : undefined,
+			options: type === "select" ? ['Option 1', 'Option 2'] : undefined,
 			step_id: stepId,
 			order_index: maxOrderIndex + 1,
 		};
@@ -680,20 +705,46 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 			onColorChange(newHex);
 		};
 
-		const handleGradientClick = (e: React.MouseEvent<HTMLDivElement>) => {
+		const handleGradientInteraction = (e: React.MouseEvent<HTMLDivElement>) => {
 			const rect = e.currentTarget.getBoundingClientRect();
 			const x = e.clientX - rect.left;
 			const y = e.clientY - rect.top;
-			const newSat = Math.round((x / rect.width) * 100);
-			const newVal = Math.round(100 - (y / rect.height) * 100);
+			const newSat = Math.max(0, Math.min(100, Math.round((x / rect.width) * 100)));
+			const newVal = Math.max(0, Math.min(100, Math.round(100 - (y / rect.height) * 100)));
 			updateColor(hue, newSat, newVal);
 		};
 
-		const handleHueClick = (e: React.MouseEvent<HTMLDivElement>) => {
+		const handleHueInteraction = (e: React.MouseEvent<HTMLDivElement>) => {
 			const rect = e.currentTarget.getBoundingClientRect();
 			const x = e.clientX - rect.left;
-			const newHue = Math.round((x / rect.width) * 360);
+			const newHue = Math.max(0, Math.min(360, Math.round((x / rect.width) * 360)));
 			updateColor(newHue, saturation, value);
+		};
+
+		const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, type: 'gradient' | 'hue') => {
+			e.preventDefault();
+			const handleMouseMove = (moveEvent: MouseEvent) => {
+				const rect = e.currentTarget.getBoundingClientRect();
+				const x = moveEvent.clientX - rect.left;
+				const y = moveEvent.clientY - rect.top;
+
+				if (type === 'gradient') {
+					const newSat = Math.max(0, Math.min(100, Math.round((x / rect.width) * 100)));
+					const newVal = Math.max(0, Math.min(100, Math.round(100 - (y / rect.height) * 100)));
+					updateColor(hue, newSat, newVal);
+				} else {
+					const newHue = Math.max(0, Math.min(360, Math.round((x / rect.width) * 360)));
+					updateColor(newHue, saturation, value);
+				}
+			};
+
+			const handleMouseUp = () => {
+				document.removeEventListener('mousemove', handleMouseMove);
+				document.removeEventListener('mouseup', handleMouseUp);
+			};
+
+			document.addEventListener('mousemove', handleMouseMove);
+			document.addEventListener('mouseup', handleMouseUp);
 		};
 
 		const copyToClipboard = (text: string) => {
@@ -733,15 +784,16 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 					{/* Color Gradient Area */}
 					<div className="mb-4">
 						<div
-							className="w-full h-48 rounded-lg border border-border cursor-crosshair relative"
+							className="w-full h-48 rounded-lg border border-border cursor-crosshair relative select-none"
 							style={{
 								background: `linear-gradient(to right, white, hsl(${hue}, 100%, 50%)), linear-gradient(to top, black, transparent)`
 							}}
-							onClick={handleGradientClick}
+							onClick={handleGradientInteraction}
+							onMouseDown={(e) => handleMouseDown(e, 'gradient')}
 						>
 							{/* Saturation/Value Selector */}
 							<div
-								className="absolute w-4 h-4 border-2 border-white rounded-full shadow-lg transform -translate-x-2 -translate-y-2"
+								className="absolute w-4 h-4 border-2 border-white rounded-full shadow-lg transform -translate-x-2 -translate-y-2 pointer-events-none"
 								style={{
 									left: `${saturation}%`,
 									top: `${100 - value}%`
@@ -753,15 +805,16 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 					{/* Hue Slider */}
 					<div className="mb-4">
 						<div
-							className="w-full h-6 rounded border border-border cursor-pointer relative"
+							className="w-full h-6 rounded border border-border cursor-pointer relative select-none"
 							style={{
 								background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)'
 							}}
-							onClick={handleHueClick}
+							onClick={handleHueInteraction}
+							onMouseDown={(e) => handleMouseDown(e, 'hue')}
 						>
 							{/* Hue Selector */}
 							<div
-								className="absolute w-4 h-6 border-2 border-white rounded shadow-lg transform -translate-x-2"
+								className="absolute w-4 h-6 border-2 border-white rounded shadow-lg transform -translate-x-2 pointer-events-none"
 								style={{ left: `${(hue / 360) * 100}%` }}
 							/>
 						</div>
@@ -1388,7 +1441,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 				)}
 			</Card>
 		);
-	}, [isPreview, localUseDefaultColors, localBackgroundColor, localPrimaryColor, handleFieldUpdate, updateField]);
+	}, [isPreview, localUseDefaultColors, localBackgroundColor, localButtonColor, handleFieldUpdate, updateField]);
 
 	if (isLoading) {
 		return <div className="p-4">Loading form...</div>;
@@ -1578,24 +1631,23 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 						{/* Color Settings - Only show when default colors is disabled */}
 						{!localUseDefaultColors && (
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								{/* Primary Color */}
+								{/* Button Color */}
 								<div className="space-y-3">
-									<Label>Primary Color</Label>
+									<Label>Button Color</Label>
 									<div className="space-y-3">
 										{/* Current Color Display */}
 										<div className="flex items-center space-x-3">
 											<div
 												className="w-12 h-12 rounded-lg border-2 border-border shadow-sm cursor-pointer"
-												style={{ backgroundColor: localPrimaryColor }}
+												style={{ backgroundColor: localButtonColor }}
 												onClick={() => {
-													setTempColor(localPrimaryColor);
-													setShowColorPicker('primary');
+													setShowColorPicker('button');
 												}}
 											/>
 											<div className="flex-1">
 												<Input
-													value={localPrimaryColor}
-													onChange={(e) => setLocalPrimaryColor(e.target.value)}
+													value={localButtonColor}
+													onChange={(e) => setLocalButtonColor(e.target.value)}
 													placeholder="#000000"
 													className="font-mono text-sm"
 												/>
@@ -1604,8 +1656,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 												variant="outline"
 												size="sm"
 												onClick={() => {
-													setTempColor(localPrimaryColor);
-													setShowColorPicker('primary');
+													setShowColorPicker('button');
 												}}
 											>
 												Pick Color
@@ -1616,12 +1667,12 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 										<div className="space-y-2">
 											<p className="text-sm text-muted-foreground">Preset Colors:</p>
 											<div className="grid grid-cols-5 gap-2">
-												{primaryColorPresets.map((preset) => (
+												{buttonColorPresets.map((preset) => (
 													<button
 														key={preset.value}
 														type="button"
-														onClick={() => setLocalPrimaryColor(preset.value)}
-														className={`w-8 h-8 rounded-md border-2 transition-all hover:scale-110 ${localPrimaryColor === preset.value
+														onClick={() => setLocalButtonColor(preset.value)}
+														className={`w-8 h-8 rounded-md border-2 transition-all hover:scale-110 ${localButtonColor === preset.value
 															? 'border-foreground ring-2 ring-foreground ring-offset-2'
 															: 'border-border hover:border-foreground/50'
 															}`}
@@ -1644,7 +1695,6 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 												className="w-12 h-12 rounded-lg border-2 border-border shadow-sm cursor-pointer"
 												style={{ backgroundColor: localBackgroundColor }}
 												onClick={() => {
-													setTempColor(localBackgroundColor);
 													setShowColorPicker('background');
 												}}
 											/>
@@ -1660,7 +1710,6 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 												variant="outline"
 												size="sm"
 												onClick={() => {
-													setTempColor(localBackgroundColor);
 													setShowColorPicker('background');
 												}}
 											>
@@ -1730,7 +1779,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 							}`}
 						style={{
 							backgroundColor: localUseDefaultColors ? undefined : (localBackgroundColor === 'transparent' ? 'transparent' : (localBackgroundColor === '#0A0A0A' ? '#1a1a1a' : '#ffffff')),
-							borderColor: localUseDefaultColors ? 'hsl(var(--border))' : (localPrimaryColor + '20')
+							borderColor: localUseDefaultColors ? 'hsl(var(--border))' : (localButtonColor + '20')
 						}}
 					>
 						<div className="flex items-center justify-between">
@@ -1781,7 +1830,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 							}`}
 						style={{
 							backgroundColor: localUseDefaultColors ? undefined : (localBackgroundColor === 'transparent' ? 'transparent' : (localBackgroundColor === '#0A0A0A' ? '#1a1a1a' : '#ffffff')),
-							borderColor: localUseDefaultColors ? 'hsl(var(--border))' : (localPrimaryColor + '20')
+							borderColor: localUseDefaultColors ? 'hsl(var(--border))' : (localButtonColor + '20')
 						}}
 					>
 						<form className="space-y-6">
@@ -1798,7 +1847,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 											className="h-2 rounded-full transition-all duration-300"
 											style={{
 												width: `${(1 / localSteps.length) * 100}%`,
-												backgroundColor: localUseDefaultColors ? 'hsl(var(--primary))' : localPrimaryColor
+												backgroundColor: localUseDefaultColors ? 'hsl(var(--primary))' : localButtonColor
 											}}
 										/>
 									</div>
@@ -2065,28 +2114,20 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 
 			{/* Advanced Color Pickers */}
 			<AdvancedColorPicker
-				label="Primary Color"
-				currentColor={tempColor}
+				label="Button Color"
+				currentColor={localButtonColor}
 				onColorChange={(color) => {
-					if (showColorPicker === 'primary') {
-						setLocalPrimaryColor(color);
-					} else if (showColorPicker === 'background') {
-						setLocalBackgroundColor(color);
-					}
+					setLocalButtonColor(color);
 				}}
-				isOpen={showColorPicker === 'primary'}
+				isOpen={showColorPicker === 'button'}
 				onClose={() => setShowColorPicker(null)}
 			/>
 
 			<AdvancedColorPicker
 				label="Background Color"
-				currentColor={tempColor}
+				currentColor={localBackgroundColor}
 				onColorChange={(color) => {
-					if (showColorPicker === 'primary') {
-						setLocalPrimaryColor(color);
-					} else if (showColorPicker === 'background') {
-						setLocalBackgroundColor(color);
-					}
+					setLocalBackgroundColor(color);
 				}}
 				isOpen={showColorPicker === 'background'}
 				onClose={() => setShowColorPicker(null)}
@@ -2108,7 +2149,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 						required: field.required || false,
 						options: field.options
 					})),
-					primaryColor: localPrimaryColor,
+					primaryColor: localButtonColor,
 					backgroundColor: localBackgroundColor,
 					fontFamily: localFontFamily,
 					logoUrl: localLogoUrl,
