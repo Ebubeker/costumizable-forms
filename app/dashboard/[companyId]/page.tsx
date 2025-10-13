@@ -32,14 +32,15 @@ export default async function DashboardPage({
 	console.log('accessLevel', accessLevel, user);
 
 	// Handle different access levels
+	// If user is admin, they get admin access
+	// If user is customer or no_access, they get member view
 	let finalAccessLevel: 'admin' | 'no_access' | 'customer';
 
 	if (accessLevel === 'admin') {
 		finalAccessLevel = 'admin';
-	} else if (accessLevel === 'customer') {
-		finalAccessLevel = 'customer';
 	} else {
-		finalAccessLevel = 'no_access';
+		// Both 'customer' and 'no_access' get member view
+		finalAccessLevel = 'customer';
 	}
 
 	return (
