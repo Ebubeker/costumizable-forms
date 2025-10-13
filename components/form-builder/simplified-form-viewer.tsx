@@ -539,8 +539,9 @@ export function SimplifiedFormViewer({ form, onSubmit }: SimplifiedFormViewerPro
 								<SelectValue placeholder={field.placeholder || 'Select an option'} />
 							</SelectTrigger>
 							<SelectContent
+								className="border border-gray-200 dark:border-gray-700"
 								style={{
-									backgroundColor: inputBgColor,
+									backgroundColor: colors.cardBgColor,
 									borderColor: borderColor,
 									boxShadow: isDarkMode ? '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2)' : '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
 								}}
@@ -549,10 +550,11 @@ export function SimplifiedFormViewer({ form, onSubmit }: SimplifiedFormViewerPro
 									<SelectItem
 										key={index}
 										value={option}
-										className="hover:bg-opacity-10 transition-colors"
+										className="transition-colors cursor-pointer hover:bg-opacity-10"
 										style={{
 											color: textColor,
-											'--tw-ring-color': primaryColor
+											'--tw-ring-color': primaryColor,
+											'--hover-bg': colors.hoverBgColor
 										} as React.CSSProperties}
 									>
 										{option}

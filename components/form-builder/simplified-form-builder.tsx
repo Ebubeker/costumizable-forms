@@ -135,7 +135,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 			phone: "A phone number input field optimized for telephone number entry with formatting.",
 			select: "A dropdown menu allowing users to choose from predefined options. Perfect for categories or choices.",
 			checkbox: "A checkbox for yes/no questions or terms acceptance. Users can check or uncheck the option.",
-			textarea: "A multi-line text input for longer responses like comments, descriptions, or detailed feedback.",
+			textarea: "A message field for longer responses like comments, descriptions, or detailed feedback.",
 			heading: "A heading element to organize and structure your form with titles or section breaks.",
 			paragraph: "A paragraph element to add explanatory text, instructions, or additional information."
 		};
@@ -953,7 +953,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 							</button>
 							<div className="flex items-center gap-2">
 								<h3 className="text-lg font-semibold capitalize">
-									{field.type === 'heading' ? 'Heading' : field.type === 'paragraph' ? 'Paragraph' : `${field.type} Field`}
+									{field.type === 'heading' ? 'Heading' : field.type === 'paragraph' ? 'Paragraph' : field.type === 'textarea' ? 'Message Field' : `${field.type} Field`}
 								</h3>
 								<TooltipProvider>
 									<Tooltip>
@@ -1026,7 +1026,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 														onChange={(e) => {
 															const newOptions = [...(field.options || [])];
 															newOptions[index] = e.target.value;
-															updateField(field.id, { options: newOptions });
+															handleFieldUpdate(field.id, { options: newOptions });
 														}}
 														placeholder={`Option ${index + 1}`}
 														className="flex-1"
@@ -1037,7 +1037,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 														size="sm"
 														onClick={() => {
 															const newOptions = (field.options || []).filter((_, i) => i !== index);
-															updateField(field.id, { options: newOptions });
+															handleFieldUpdate(field.id, { options: newOptions });
 														}}
 														className="w-8 h-8 p-0 min-w-8 min-h-8 max-w-8 max-h-8 text-red-500 hover:text-red-700 hover:bg-red-50"
 													>
@@ -1051,7 +1051,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 												size="sm"
 												onClick={() => {
 													const newOptions = [...(field.options || []), ''];
-													updateField(field.id, { options: newOptions });
+													handleFieldUpdate(field.id, { options: newOptions });
 												}}
 												className="w-full inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
 											>
@@ -1066,7 +1066,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 									<Checkbox
 										id={`required-${field.id}`}
 										checked={field.required}
-										onCheckedChange={(checked) => updateField(field.id, { required: !!checked })}
+										onCheckedChange={(checked) => handleFieldUpdate(field.id, { required: !!checked })}
 									/>
 									<Label htmlFor={`required-${field.id}`}>Required field</Label>
 								</div>
@@ -1076,7 +1076,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 				</Card>
 			</div>
 		);
-	}, [deleteField, getFieldDescription]);
+	}, [deleteField, getFieldDescription, handleFieldUpdate]);
 
 	// Memoize sorted fields to prevent unnecessary re-sorting
 	const sortedFields = useMemo(() =>
@@ -1236,9 +1236,22 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 								>
 									<SelectValue placeholder={field.placeholder || 'Select an option'} />
 								</SelectTrigger>
-								<SelectContent>
+								<SelectContent
+									className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+									style={{
+										backgroundColor: localUseDefaultColors ? undefined : (localBackgroundColor === '#0A0A0A' ? '#1a1a1a' : '#ffffff'),
+										borderColor: localUseDefaultColors ? undefined : borderColor,
+									}}
+								>
 									{field.options?.map((option, index) => (
-										<SelectItem key={index} value={option}>
+										<SelectItem
+											key={index}
+											value={option}
+											className="hover:bg-gray-100 dark:hover:bg-gray-700"
+											style={{
+												color: localUseDefaultColors ? undefined : textColor,
+											}}
+										>
 											{option}
 										</SelectItem>
 									))}
@@ -1327,7 +1340,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 												onChange={(e) => {
 													const newOptions = [...(field.options || [])];
 													newOptions[index] = e.target.value;
-													updateField(field.id, { options: newOptions });
+													handleFieldUpdate(field.id, { options: newOptions });
 												}}
 												placeholder={`Option ${index + 1}`}
 												className="flex-1"
@@ -1338,7 +1351,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 												size="sm"
 												onClick={() => {
 													const newOptions = (field.options || []).filter((_, i) => i !== index);
-													updateField(field.id, { options: newOptions });
+													handleFieldUpdate(field.id, { options: newOptions });
 												}}
 												className="w-8 h-8 p-0 min-w-8 min-h-8 max-w-8 max-h-8 text-red-500 hover:text-red-700 hover:bg-red-50"
 											>
@@ -1352,7 +1365,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 										size="sm"
 										onClick={() => {
 											const newOptions = [...(field.options || []), ''];
-											updateField(field.id, { options: newOptions });
+											handleFieldUpdate(field.id, { options: newOptions });
 										}}
 										className="w-full inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
 									>
@@ -1367,7 +1380,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 							<Checkbox
 								id={`required-${field.id}`}
 								checked={field.required}
-								onCheckedChange={(checked) => updateField(field.id, { required: !!checked })}
+								onCheckedChange={(checked) => handleFieldUpdate(field.id, { required: !!checked })}
 							/>
 							<Label htmlFor={`required-${field.id}`}>Required field</Label>
 						</div>
@@ -1388,18 +1401,6 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 					{currentForm ? 'Edit Form' : 'Create New Form'}
 				</h1>
 				<div className="flex items-center space-x-2">
-					<Button
-						variant={isPreview ? "default" : "outline"}
-						onClick={() => {
-							if (!isPreview) {
-								syncLocalChangesToState();
-							}
-							setIsPreview(!isPreview);
-						}}
-						className={isPreview ? "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500" : ""}
-					>
-						{isPreview ? 'Edit' : 'Preview'}
-					</Button>
 					<Button
 						onClick={saveForm}
 						disabled={isSaving}
@@ -1480,20 +1481,6 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 					<Card className="p-4 space-y-4">
 						<h3 className="text-lg font-semibold">Branding Settings</h3>
 
-						<div className="flex items-center space-x-2">
-							<Checkbox
-								id="use-default-colors"
-								checked={localUseDefaultColors}
-								onCheckedChange={(checked) => setLocalUseDefaultColors(!!checked)}
-							/>
-							<Label htmlFor="use-default-colors" className="text-sm">
-								Use default color settings for new forms
-							</Label>
-						</div>
-						<p className="text-xs text-muted-foreground">
-							When enabled, new forms will automatically use the default color scheme (#645EFF primary, transparent background)
-						</p>
-
 						<div className="space-y-2">
 							<Label>Organization Logo</Label>
 
@@ -1571,122 +1558,143 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 							</p>
 						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-							{/* Primary Color */}
-							<div className="space-y-3">
-								<Label>Primary Color</Label>
-								<div className="space-y-3">
-									{/* Current Color Display */}
-									<div className="flex items-center space-x-3">
-										<div
-											className="w-12 h-12 rounded-lg border-2 border-border shadow-sm cursor-pointer"
-											style={{ backgroundColor: localPrimaryColor }}
-											onClick={() => {
-												setTempColor(localPrimaryColor);
-												setShowColorPicker('primary');
-											}}
-										/>
-										<div className="flex-1">
-											<Input
-												value={localPrimaryColor}
-												onChange={(e) => setLocalPrimaryColor(e.target.value)}
-												placeholder="#000000"
-												className="font-mono text-sm"
-											/>
-										</div>
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => {
-												setTempColor(localPrimaryColor);
-												setShowColorPicker('primary');
-											}}
-										>
-											Pick Color
-										</Button>
-									</div>
-
-									{/* Preset Colors */}
-									<div className="space-y-2">
-										<p className="text-sm text-muted-foreground">Preset Colors:</p>
-										<div className="grid grid-cols-5 gap-2">
-											{primaryColorPresets.map((preset) => (
-												<button
-													key={preset.value}
-													type="button"
-													onClick={() => setLocalPrimaryColor(preset.value)}
-													className={`w-8 h-8 rounded-md border-2 transition-all hover:scale-110 ${localPrimaryColor === preset.value
-														? 'border-foreground ring-2 ring-foreground ring-offset-2'
-														: 'border-border hover:border-foreground/50'
-														}`}
-													style={{ backgroundColor: preset.value }}
-													title={preset.name}
-												/>
-											))}
-										</div>
-									</div>
-								</div>
+						{/* Use Default Colors Checkbox */}
+						<div className="space-y-2">
+							<div className="flex items-center space-x-2">
+								<Checkbox
+									id="use-default-colors"
+									checked={localUseDefaultColors}
+									onCheckedChange={(checked) => setLocalUseDefaultColors(!!checked)}
+								/>
+								<Label htmlFor="use-default-colors" className="text-sm">
+									Use default color settings for new forms (Uncheck to use custom colors)
+								</Label>
 							</div>
-
-							{/* Background Color */}
-							<div className="space-y-3">
-								<Label>Background Color</Label>
-								<div className="space-y-3">
-									{/* Current Color Display */}
-									<div className="flex items-center space-x-3">
-										<div
-											className="w-12 h-12 rounded-lg border-2 border-border shadow-sm cursor-pointer"
-											style={{ backgroundColor: localBackgroundColor }}
-											onClick={() => {
-												setTempColor(localBackgroundColor);
-												setShowColorPicker('background');
-											}}
-										/>
-										<div className="flex-1">
-											<Input
-												value={localBackgroundColor}
-												onChange={(e) => setLocalBackgroundColor(e.target.value)}
-												placeholder="transparent"
-												className="font-mono text-sm"
-											/>
-										</div>
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => {
-												setTempColor(localBackgroundColor);
-												setShowColorPicker('background');
-											}}
-										>
-											Pick Color
-										</Button>
-									</div>
-
-									{/* Preset Colors */}
-									<div className="space-y-2">
-										<p className="text-sm text-muted-foreground">Preset Colors:</p>
-										<div className="grid grid-cols-6 gap-2">
-											{backgroundColorPresets.map((preset) => (
-												<button
-													key={preset.value}
-													type="button"
-													onClick={() => setLocalBackgroundColor(preset.value)}
-													className={`w-8 h-8 rounded-md border-2 transition-all hover:scale-110 ${localBackgroundColor === preset.value
-														? 'border-foreground ring-2 ring-foreground ring-offset-2'
-														: preset.value === 'transparent'
-															? 'border-red-500 hover:border-red-600'
-															: 'border-border hover:border-foreground/50'
-														}`}
-													style={{ backgroundColor: preset.value }}
-													title={preset.name}
-												/>
-											))}
-										</div>
-									</div>
-								</div>
-							</div>
+							<p className="text-xs text-muted-foreground">
+								When enabled, new forms will automatically use the default color scheme (#645EFF primary, transparent background)
+							</p>
 						</div>
 
+						{/* Color Settings - Only show when default colors is disabled */}
+						{!localUseDefaultColors && (
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+								{/* Primary Color */}
+								<div className="space-y-3">
+									<Label>Primary Color</Label>
+									<div className="space-y-3">
+										{/* Current Color Display */}
+										<div className="flex items-center space-x-3">
+											<div
+												className="w-12 h-12 rounded-lg border-2 border-border shadow-sm cursor-pointer"
+												style={{ backgroundColor: localPrimaryColor }}
+												onClick={() => {
+													setTempColor(localPrimaryColor);
+													setShowColorPicker('primary');
+												}}
+											/>
+											<div className="flex-1">
+												<Input
+													value={localPrimaryColor}
+													onChange={(e) => setLocalPrimaryColor(e.target.value)}
+													placeholder="#000000"
+													className="font-mono text-sm"
+												/>
+											</div>
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => {
+													setTempColor(localPrimaryColor);
+													setShowColorPicker('primary');
+												}}
+											>
+												Pick Color
+											</Button>
+										</div>
+
+										{/* Preset Colors */}
+										<div className="space-y-2">
+											<p className="text-sm text-muted-foreground">Preset Colors:</p>
+											<div className="grid grid-cols-5 gap-2">
+												{primaryColorPresets.map((preset) => (
+													<button
+														key={preset.value}
+														type="button"
+														onClick={() => setLocalPrimaryColor(preset.value)}
+														className={`w-8 h-8 rounded-md border-2 transition-all hover:scale-110 ${localPrimaryColor === preset.value
+															? 'border-foreground ring-2 ring-foreground ring-offset-2'
+															: 'border-border hover:border-foreground/50'
+															}`}
+														style={{ backgroundColor: preset.value }}
+														title={preset.name}
+													/>
+												))}
+											</div>
+										</div>
+									</div>
+								</div>
+
+								{/* Background Color */}
+								<div className="space-y-3">
+									<Label>Background Color</Label>
+									<div className="space-y-3">
+										{/* Current Color Display */}
+										<div className="flex items-center space-x-3">
+											<div
+												className="w-12 h-12 rounded-lg border-2 border-border shadow-sm cursor-pointer"
+												style={{ backgroundColor: localBackgroundColor }}
+												onClick={() => {
+													setTempColor(localBackgroundColor);
+													setShowColorPicker('background');
+												}}
+											/>
+											<div className="flex-1">
+												<Input
+													value={localBackgroundColor}
+													onChange={(e) => setLocalBackgroundColor(e.target.value)}
+													placeholder="transparent"
+													className="font-mono text-sm"
+												/>
+											</div>
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => {
+													setTempColor(localBackgroundColor);
+													setShowColorPicker('background');
+												}}
+											>
+												Pick Color
+											</Button>
+										</div>
+
+										{/* Preset Colors */}
+										<div className="space-y-2">
+											<p className="text-sm text-muted-foreground">Preset Colors:</p>
+											<div className="grid grid-cols-6 gap-2">
+												{backgroundColorPresets.map((preset) => (
+													<button
+														key={preset.value}
+														type="button"
+														onClick={() => setLocalBackgroundColor(preset.value)}
+														className={`w-8 h-8 rounded-md border-2 transition-all hover:scale-110 ${localBackgroundColor === preset.value
+															? 'border-foreground ring-2 ring-foreground ring-offset-2'
+															: preset.value === 'transparent'
+																? 'border-red-500 hover:border-red-600'
+																: 'border-border hover:border-foreground/50'
+															}`}
+														style={{ backgroundColor: preset.value }}
+														title={preset.name}
+													/>
+												))}
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						)}
+
+						{/* Font Family - Always visible */}
 						<div className="space-y-2">
 							<Label htmlFor="font-family">Font Family</Label>
 							<Select value={localFontFamily} onValueChange={setLocalFontFamily}>
@@ -1922,7 +1930,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 															onClick={() => addField('textarea', step.id)}
 															className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
 														>
-															+ Textarea
+															+ Message
 														</Button>
 														<Button
 															size="sm"
@@ -2013,7 +2021,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 										onClick={() => addField('textarea')}
 										className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
 									>
-										+ Textarea
+										+ Message
 									</Button>
 									<Button
 										size="sm"

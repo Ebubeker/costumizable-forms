@@ -84,7 +84,6 @@ export async function GET(
 					id: response.id,
 					submitted_by: response.submitted_by,
 					submitted_at: response.submitted_at,
-					ip_address: response.ip_address,
 					user_agent: response.user_agent,
 					// Include all field values as direct properties
 					...fieldValues,

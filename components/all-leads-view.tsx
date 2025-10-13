@@ -61,8 +61,8 @@ export default function AllLeadsView({ companyId, userId }: AllLeadsViewProps) {
 		try {
 			setIsLoading(true);
 
-			// Load all forms
-			const formsData = await FormsService.getForms(companyId);
+			// Load all forms (including inactive ones for leads view)
+			const formsData = await FormsService.getFormsForAdmin(companyId);
 			setForms(formsData);
 
 			// Load all responses from all forms

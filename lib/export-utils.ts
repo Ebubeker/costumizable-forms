@@ -42,7 +42,6 @@ export function exportToCSV(data: ExportData): void {
 		'Response ID',
 		'Submitted By',
 		'Submitted At',
-		'IP Address',
 		...data.form.fields.map(field => field.label)
 	];
 
@@ -51,8 +50,7 @@ export function exportToCSV(data: ExportData): void {
 		const row = [
 			response.id,
 			response.submitted_by,
-			new Date(response.submitted_at).toLocaleString(),
-			response.ip_address
+			new Date(response.submitted_at).toLocaleString()
 		];
 
 		// Add field values in the same order as headers
@@ -96,7 +94,6 @@ export function exportToExcel(data: ExportData): void {
 		'Response ID',
 		'Submitted By',
 		'Submitted At',
-		'IP Address',
 		...data.form.fields.map(field => field.label)
 	];
 
@@ -105,8 +102,7 @@ export function exportToExcel(data: ExportData): void {
 		const row = [
 			response.id,
 			response.submitted_by,
-			new Date(response.submitted_at).toLocaleString(),
-			response.ip_address
+			new Date(response.submitted_at).toLocaleString()
 		];
 
 		// Add field values - ensure proper alignment
@@ -127,7 +123,6 @@ export function exportToExcel(data: ExportData): void {
 		if (index === 0) return { wch: 15 }; // Response ID
 		if (index === 1) return { wch: 20 }; // Submitted By
 		if (index === 2) return { wch: 20 }; // Submitted At
-		if (index === 3) return { wch: 15 }; // IP Address
 		return { wch: Math.max(header.length, 15) }; // Field columns
 	});
 	ws['!cols'] = colWidths;
