@@ -29,6 +29,10 @@ export default async function DashboardPage({
 	// 'no_access' means the user is not an authorized member of the company
 	const { accessLevel } = result;
 
+	// Since only community members have access to the app, 
+	// if they have access but aren't admin, they're a member
+	const finalAccessLevel = result.hasAccess && accessLevel === 'admin' ? 'admin' : 'customer';
+
 	return (
 		<DashboardPageClient
 			user={{
@@ -36,7 +40,7 @@ export default async function DashboardPage({
 				username: user.username
 			}}
 			company={company}
-			accessLevel={accessLevel as 'admin' | 'no_access' | 'customer'}
+			accessLevel={finalAccessLevel as 'admin' | 'no_access' | 'customer'}
 			hasAccess={result.hasAccess}
 			userId={userId}
 			companyId={companyId}
