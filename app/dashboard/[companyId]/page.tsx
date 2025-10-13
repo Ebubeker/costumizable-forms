@@ -51,7 +51,6 @@ export default async function DashboardPage({
 			}}
 			company={company}
 			accessLevel={finalAccessLevel as 'admin' | 'no_access' | 'customer'}
-			hasAccess={result.hasAccess}
 			userId={userId}
 			companyId={companyId}
 		/>

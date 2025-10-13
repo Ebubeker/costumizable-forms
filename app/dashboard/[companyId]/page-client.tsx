@@ -20,7 +20,6 @@ interface DashboardPageClientProps {
 		title: string;
 	};
 	accessLevel: 'admin' | 'no_access' | 'customer';
-	hasAccess: boolean;
 	userId: string;
 	companyId: string;
 }
@@ -29,7 +28,6 @@ export default function DashboardPageClient({
 	user,
 	company,
 	accessLevel,
-	hasAccess,
 	userId,
 	companyId,
 }: DashboardPageClientProps) {
@@ -39,25 +37,12 @@ export default function DashboardPageClient({
 	console.log(user)
 
 	// Check if user is admin
-	const isAdmin = (accessLevel === 'admin') && hasAccess;
+	const isAdmin = (accessLevel === 'admin');
 
 	// Set document title
 	useEffect(() => {
 		document.title = 'Form Builder | Dashboard';
 	}, []);
-
-	if (!hasAccess) {
-		return (
-			<div className="flex justify-center items-center h-screen px-8">
-				<div className="text-center">
-					<h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-					<p className="text-gray-600">
-						Hi <strong>{user.name || user.username}</strong>, you do not have access to this company.
-					</p>
-				</div>
-			</div>
-		);
-	}
 
 	// For non-admin users, show only member view without tabs
 	if (!isAdmin) {
