@@ -31,9 +31,16 @@ export default async function DashboardPage({
 
 	console.log('accessLevel', accessLevel, user);
 
-	// Since only community members have access to the app, 
-	// if they have access but aren't admin, they're a member
-	const finalAccessLevel = result.hasAccess && accessLevel === 'admin' ? 'admin' : 'customer';
+	// Handle different access levels
+	let finalAccessLevel: 'admin' | 'no_access' | 'customer';
+
+	if (accessLevel === 'admin') {
+		finalAccessLevel = 'admin';
+	} else if (accessLevel === 'customer') {
+		finalAccessLevel = 'customer';
+	} else {
+		finalAccessLevel = 'no_access';
+	}
 
 	return (
 		<DashboardPageClient
