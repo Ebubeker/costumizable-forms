@@ -1,14 +1,108 @@
-@layer theme, base, frosted_ui, components, utilities;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/preflight.css" layer(base);
-@import "tailwindcss/utilities.css" layer(utilities);
-@import "@whop/react/styles.css" layer(frosted_ui);
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 244 100% 68%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 244 100% 68%;
+    --radius: 0.5rem;
+  }
 
-@config '../tailwind.config.ts';
+  .dark {
+    --background: 0 0% 4%; /* #0A0A0A - Very dark background */
+    --foreground: 0 0% 100%; /* #FFFFFF - Pure white text */
+    --card: 240 3% 6%; /* #101011 - Container/card background */
+    --card-foreground: 0 0% 100%; /* #FFFFFF - White text on cards */
+    --popover: 240 3% 6%; /* #101011 - Same as card */
+    --popover-foreground: 0 0% 100%; /* #FFFFFF - White text */
+    --primary: 244 100% 68%; /* #645EFF - Primary purple color */
+    --primary-foreground: 0 0% 100%; /* #FFFFFF - White text on primary */
+    --secondary: 0 0% 12%; /* #1F1F1F - Dark gray for secondary elements */
+    --secondary-foreground: 0 0% 100%; /* #FFFFFF - White text */
+    --muted: 0 0% 12%; /* #1F1F1F - Dark gray for muted elements */
+    --muted-foreground: 0 0% 88%; /* #E0E0E0 - Light gray for secondary text */
+    --accent: 0 0% 12%; /* #1F1F1F - Dark gray for accents */
+    --accent-foreground: 0 0% 100%; /* #FFFFFF - White text */
+    --destructive: 0 84% 60%; /* Red for destructive actions */
+    --destructive-foreground: 0 0% 100%; /* White text on red */
+    --border: 0 0% 12%; /* #1F1F1F - Dark gray borders */
+    --input: 0 0% 12%; /* #1F1F1F - Dark gray input backgrounds */
+    --ring: 244 100% 68%; /* #645EFF - Primary purple focus ring */
+  }
+}
 
-body {
-	background: var(--background);
-	color: var(--foreground);
-	font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Google Fonts for form builder */
+.font-inter {
+  font-family: var(--font-inter), sans-serif;
+}
+
+.font-roboto {
+  font-family: var(--font-roboto), sans-serif;
+}
+
+.font-open-sans {
+  font-family: var(--font-open-sans), sans-serif;
+}
+
+.font-lato {
+  font-family: var(--font-lato), sans-serif;
+}
+
+.font-montserrat {
+  font-family: var(--font-montserrat), sans-serif;
+}
+
+.font-poppins {
+  font-family: var(--font-poppins), sans-serif;
+}
+
+.font-source-sans {
+  font-family: var(--font-source-sans), sans-serif;
+}
+
+.font-nunito {
+  font-family: var(--font-nunito), sans-serif;
+}
+
+.font-raleway {
+  font-family: var(--font-raleway), sans-serif;
+}
+
+.font-ubuntu {
+  font-family: var(--font-ubuntu), sans-serif;
+}
+
+.font-playfair-display {
+  font-family: var(--font-playfair-display), serif;
+}
+
+.font-merriweather {
+  font-family: var(--font-merriweather), serif;
 }

@@ -1,5 +1,6 @@
 import { whopSdk } from "@/lib/whop-sdk";
 import { headers } from "next/headers";
+import DashboardPageClient from "./page-client";
 
 export default async function DashboardPage({
 	params,
@@ -29,18 +30,16 @@ export default async function DashboardPage({
 	const { accessLevel } = result;
 
 	return (
-		<div className="flex justify-center items-center h-screen px-8">
-			<h1 className="text-xl">
-				Hi <strong>{user.name}</strong>, you{" "}
-				<strong>{result.hasAccess ? "have" : "do not have"} access</strong> to
-				this company. Your access level to this company is:{" "}
-				<strong>{accessLevel}</strong>. <br />
-				<br />
-				Your user ID is <strong>{userId}</strong> and your username is{" "}
-				<strong>@{user.username}</strong>.<br />
-				<br />
-				You are viewing the company: <strong>{company.title}</strong>
-			</h1>
-		</div>
+		<DashboardPageClient
+			user={{
+				name: user.name,
+				username: user.username
+			}}
+			company={company}
+			accessLevel={accessLevel as 'admin' | 'no_access' | 'customer'}
+			hasAccess={result.hasAccess}
+			userId={userId}
+			companyId={companyId}
+		/>
 	);
 }
