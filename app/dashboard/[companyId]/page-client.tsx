@@ -35,6 +35,9 @@ export default function DashboardPageClient({
 }: DashboardPageClientProps) {
 	const [activeTab, setActiveTab] = useState<'admin' | 'member' | 'leads'>('admin');
 
+	console.log('accessLevel', accessLevel);
+	console.log(user)
+
 	// Check if user is admin
 	const isAdmin = (accessLevel === 'admin') && hasAccess;
 
