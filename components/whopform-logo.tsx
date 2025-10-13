@@ -4,19 +4,19 @@ import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
-interface WhopFormLogoProps {
+interface FormBuilderLogoProps {
 	variant?: 'icon' | 'full';
 	className?: string;
 	width?: number;
 	height?: number;
 }
 
-export function WhopFormLogo({
+export function FormBuilderLogo({
 	variant = 'full',
 	className = '',
 	width,
 	height
-}: WhopFormLogoProps) {
+}: FormBuilderLogoProps) {
 	const { theme, resolvedTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
 
@@ -37,7 +37,7 @@ export function WhopFormLogo({
 		return (
 			<Image
 				src="/WhopForm Icon _ Transparent.png"
-				alt="WhopForms"
+				alt="Form Builder"
 				width={width || 32}
 				height={height || 32}
 				className={`${filterClass} ${className}`}

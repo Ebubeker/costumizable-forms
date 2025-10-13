@@ -1,7 +1,7 @@
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { WhopFormLogo } from '@/components/whopform-logo';
+import { FormBuilderLogo } from '@/components/whopform-logo';
 
 export default function Page() {
 	return (
@@ -10,7 +10,7 @@ export default function Page() {
 			<div className="border-b bg-card">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="flex justify-between items-center py-4">
-						<WhopFormLogo variant="full" width={150} height={40} />
+						<FormBuilderLogo variant="full" width={150} height={40} />
 						<ThemeToggle />
 					</div>
 				</div>
@@ -20,7 +20,7 @@ export default function Page() {
 				<div className="max-w-3xl mx-auto">
 					<div className="text-center mb-12">
 						<h1 className="text-4xl font-bold text-foreground mb-4">
-							Welcome to WhopForms
+							Welcome to Form Builder
 						</h1>
 						<p className="text-lg text-muted-foreground">
 							Create, manage, and analyze customizable forms with ease

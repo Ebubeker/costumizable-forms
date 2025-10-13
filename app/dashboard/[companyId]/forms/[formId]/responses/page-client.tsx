@@ -68,7 +68,7 @@ export default function FormResponsesPageClient({ formId, companyId }: FormRespo
 	// Set document title
 	useEffect(() => {
 		if (form) {
-			document.title = `WhopForm | ${form.title} - Responses`;
+			document.title = `Form Builder | ${form.title} - Responses`;
 		}
 	}, [form]);
 

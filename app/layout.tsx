@@ -96,7 +96,7 @@ const merriweather = Merriweather({
 });
 
 export const metadata: Metadata = {
-	title: "WhopForm | Customizable Forms",
+	title: "Form Builder | Create Custom Forms",
 	description: "Create, manage, and analyze customizable forms with ease",
 };
 

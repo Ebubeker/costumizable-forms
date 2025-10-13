@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { AdminFormsView } from '@/components/admin-forms-view';
 import MemberFormsView from '@/components/member-forms-view';
 import AllLeadsView from '@/components/all-leads-view';
-import { WhopFormLogo } from '@/components/whopform-logo';
+import { FormBuilderLogo } from '@/components/whopform-logo';
 import Link from 'next/link';
 
 interface DashboardPageClientProps {
@@ -40,7 +40,7 @@ export default function DashboardPageClient({
 
 	// Set document title
 	useEffect(() => {
-		document.title = 'WhopForm | Dashboard';
+		document.title = 'Form Builder | Dashboard';
 	}, []);
 
 	if (!hasAccess) {
@@ -64,7 +64,7 @@ export default function DashboardPageClient({
 					<div className="flex justify-between items-center py-6">
 						<div>
 							<div className="flex items-center gap-4 mb-2">
-								<WhopFormLogo variant="full" width={180} height={48} />
+								<FormBuilderLogo variant="full" width={180} height={48} />
 							</div>
 							<p className="text-muted-foreground text-lg">
 								Welcome back, <span className="font-semibold text-foreground">{user.name || user.username}</span> <span className="text-muted-foreground">(@{user.username})</span>
@@ -81,7 +81,7 @@ export default function DashboardPageClient({
 			</div>
 
 			{/* Fixed Navigation Tabs */}
-			<div className="fixed top-[126px] left-0 right-0 z-40 border-b border-border bg-card/70 backdrop-blur-sm">
+			<div className="fixed top-[120px] left-0 right-0 z-40 border-b border-border bg-card/70 backdrop-blur-sm">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<nav className="flex space-x-1 py-2">
 						{isAdmin && (

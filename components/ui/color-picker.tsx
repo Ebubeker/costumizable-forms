@@ -16,16 +16,17 @@ export function ColorPicker({ value, onChange, label, className }: ColorPickerPr
 	const [isOpen, setIsOpen] = useState(false);
 
 	const presetColors = [
-		'#645EFF', // Primary purple
-		'#3B82F6', // Blue
-		'#10B981', // Green
-		'#F59E0B', // Yellow
-		'#EF4444', // Red
-		'#8B5CF6', // Purple
-		'#06B6D4', // Cyan
-		'#84CC16', // Lime
-		'#F97316', // Orange
-		'#EC4899', // Pink
+		'#F6EDE4', // Warm Cream
+		'#F6E5BA', // Golden Beige
+		'#F3D2B3', // Peach
+		'#DED2E0', // Lavender
+		'#CCDECC', // Mint Green
+		'#1D434B', // Deep Teal
+		'#9C5B5F', // Muted Rose
+		'#C49B43', // Golden Brown
+		'#462E44', // Dark Purple
+		'#4D532F', // Olive Green
+		'transparent', // Transparent
 		'#6B7280', // Gray
 		'#000000', // Black
 	];
@@ -52,7 +53,10 @@ export function ColorPicker({ value, onChange, label, className }: ColorPickerPr
 									<button
 										key={color}
 										type="button"
-										className="w-6 h-6 rounded border-2 border-gray-200 dark:border-gray-600 hover:scale-110 transition-transform"
+										className={`w-6 h-6 rounded border-2 hover:scale-110 transition-transform ${color === 'transparent'
+												? 'border-red-500 hover:border-red-600'
+												: 'border-gray-200 dark:border-gray-600'
+											}`}
 										style={{ backgroundColor: color }}
 										onClick={() => {
 											onChange(color);

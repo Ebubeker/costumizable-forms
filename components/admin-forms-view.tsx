@@ -172,71 +172,73 @@ export function AdminFormsView({ companyId, userId }: AdminFormsViewProps) {
 									<div className="text-xs text-muted-foreground">
 										Created {new Date(form.created_at).toLocaleDateString()}
 									</div>
-									<div className="flex items-center gap-2">
-										<Button
-											size="sm"
-											variant="outline"
-											asChild
-											className="flex-1 inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium shadow hover:shadow-lg transition-all duration-200"
-											style={resolvedTheme === 'dark' ? {
-												borderColor: '#9ca3af',
-												color: '#f3f4f6',
-												backgroundColor: 'transparent'
-											} : {
-												borderColor: '#6b7280',
-												color: '#374151',
-												backgroundColor: 'transparent'
-											}}
-										>
-											<Link href={`/dashboard/${companyId}/forms/${form.id}/edit`}>
-												<Edit className="h-4 w-4" />
-												Edit
-											</Link>
-										</Button>
-										<Button
-											size="sm"
-											variant="outline"
-											asChild
-											className="flex-1 inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium shadow hover:shadow-lg transition-all duration-200"
-											style={resolvedTheme === 'dark' ? {
-												borderColor: '#9ca3af',
-												color: '#f3f4f6',
-												backgroundColor: 'transparent'
-											} : {
-												borderColor: '#6b7280',
-												color: '#374151',
-												backgroundColor: 'transparent'
-											}}
-										>
-											<Link href={`/dashboard/${companyId}/forms/${form.id}`}>
-												<Eye className="h-4 w-4" />
-												View
-											</Link>
-										</Button>
-										<Button
-											size="sm"
-											variant="outline"
-											asChild
-											className="flex-1 inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium shadow hover:shadow-lg transition-all duration-200"
-											style={resolvedTheme === 'dark' ? {
-												borderColor: '#9ca3af',
-												color: '#f3f4f6',
-												backgroundColor: 'transparent'
-											} : {
-												borderColor: '#6b7280',
-												color: '#374151',
-												backgroundColor: 'transparent'
-											}}
-										>
-											<Link href={`/dashboard/${companyId}/forms/${form.id}/responses`}>
-												<BarChart3 className="h-4 w-4" />
-												Responses
-											</Link>
-										</Button>
+									<div className="form-card-buttons">
+										<div className="form-card-buttons-group">
+											<Button
+												size="sm"
+												variant="outline"
+												asChild
+												className="form-card-button"
+												style={resolvedTheme === 'dark' ? {
+													borderColor: '#9ca3af',
+													color: '#f3f4f6',
+													backgroundColor: 'transparent'
+												} : {
+													borderColor: '#6b7280',
+													color: '#374151',
+													backgroundColor: 'transparent'
+												}}
+											>
+												<Link href={`/dashboard/${companyId}/forms/${form.id}/edit`}>
+													<Edit className="form-card-button-icon" />
+													<span className="form-card-button-text">Edit</span>
+												</Link>
+											</Button>
+											<Button
+												size="sm"
+												variant="outline"
+												asChild
+												className="form-card-button"
+												style={resolvedTheme === 'dark' ? {
+													borderColor: '#9ca3af',
+													color: '#f3f4f6',
+													backgroundColor: 'transparent'
+												} : {
+													borderColor: '#6b7280',
+													color: '#374151',
+													backgroundColor: 'transparent'
+												}}
+											>
+												<Link href={`/dashboard/${companyId}/forms/${form.id}`}>
+													<Eye className="form-card-button-icon" />
+													<span className="form-card-button-text">View</span>
+												</Link>
+											</Button>
+											<Button
+												size="sm"
+												variant="outline"
+												asChild
+												className="form-card-button"
+												style={resolvedTheme === 'dark' ? {
+													borderColor: '#9ca3af',
+													color: '#f3f4f6',
+													backgroundColor: 'transparent'
+												} : {
+													borderColor: '#6b7280',
+													color: '#374151',
+													backgroundColor: 'transparent'
+												}}
+											>
+												<Link href={`/dashboard/${companyId}/forms/${form.id}/responses`}>
+													<BarChart3 className="form-card-button-icon" />
+													<span className="form-card-button-text">Responses</span>
+												</Link>
+											</Button>
+										</div>
 										<Button
 											size="sm"
 											onClick={() => deleteForm(form.id)}
-											className="w-8 h-8 p-0 inline-flex items-center justify-center rounded-lg text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-red-500 to-red-600"
+											className="form-card-delete-button"
 										>
 											<Trash2 className="h-4 w-4" />
 										</Button>

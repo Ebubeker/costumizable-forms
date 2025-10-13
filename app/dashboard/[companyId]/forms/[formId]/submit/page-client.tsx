@@ -65,7 +65,7 @@ export default function FormSubmitPageClient({ formId, companyId, userId }: Form
 	// Set document title
 	useEffect(() => {
 		if (form) {
-			document.title = `WhopForm | ${form.title}`;
+			document.title = `Form Builder | ${form.title}`;
 		}
 	}, [form]);
 

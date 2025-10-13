@@ -54,7 +54,7 @@ export function FormBuilderWithHeader({
 
 	// Set document title
 	useEffect(() => {
-		document.title = `WhopForm | ${title}`;
+		document.title = `Form Builder | ${title}`;
 	}, [title]);
 
 	const handleTemplateSelect = (template: any) => {

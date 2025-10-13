@@ -2,6 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Handle zoom levels better for form cards */
+@layer utilities {
+  .form-card-buttons {
+    @apply flex items-center gap-2;
+  }
+  
+  .form-card-buttons-group {
+    @apply flex gap-2 flex-1 min-w-0;
+  }
+  
+  .form-card-button {
+    @apply flex-1 min-w-0 inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium shadow hover:shadow-lg transition-all duration-200;
+  }
+  
+  .form-card-button-icon {
+    @apply h-4 w-4 flex-shrink-0;
+  }
+  
+  .form-card-button-text {
+    @apply truncate;
+  }
+  
+  .form-card-delete-button {
+    @apply w-8 h-8 p-0 min-w-8 min-h-8 max-w-8 max-h-8 flex-shrink-0 inline-flex items-center justify-center rounded-lg text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-red-500 to-red-600;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

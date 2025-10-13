@@ -53,7 +53,7 @@ export default function FormViewPageClient({ formId, companyId }: FormViewPageCl
 	// Set document title
 	useEffect(() => {
 		if (form) {
-			document.title = `WhopForm | ${form.title}`;
+			document.title = `Form Builder | ${form.title}`;
 		}
 	}, [form]);
 

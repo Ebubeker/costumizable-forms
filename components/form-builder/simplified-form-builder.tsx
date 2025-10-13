@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -12,8 +12,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ColorPicker } from '@/components/ui/color-picker';
 import { FormsService } from '@/lib/forms';
 import { FormWithFields } from '@/types/database';
-import { Upload, X, Image as ImageIcon, Copy, Plus, Trash2, GripVertical } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Copy, Plus, Trash2, GripVertical, Eye, Info } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import FormPreviewModal from '@/components/form-preview-modal';
 import {
 	DndContext,
 	closestCenter,
@@ -74,7 +76,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 
 	// Branding settings
 	const [logoUrl, setLogoUrl] = useState("");
-	const [primaryColor, setPrimaryColor] = useState("#645EFF");
+	const [primaryColor, setPrimaryColor] = useState("#F6EDE4");
 	const [backgroundColor, setBackgroundColor] = useState("transparent");
 	const [useDefaultColors, setUseDefaultColors] = useState(true);
 	const [fontFamily, setFontFamily] = useState("Arial");
@@ -93,6 +95,65 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 	// Color picker state
 	const [showColorPicker, setShowColorPicker] = useState<'primary' | 'background' | null>(null);
 	const [tempColor, setTempColor] = useState(primaryColor);
+
+	// Preview modal state
+	const [showPreviewModal, setShowPreviewModal] = useState(false);
+
+	// Local state for all form changes (no backend updates until preview)
+	const [localFields, setLocalFields] = useState<SimplifiedFormField[]>([]);
+	const [localSteps, setLocalSteps] = useState<FormStep[]>([]);
+	const [localFormTitle, setLocalFormTitle] = useState("");
+	const [localFormDescription, setLocalFormDescription] = useState("");
+	const [localFormType, setLocalFormType] = useState<'single' | 'multi-step'>('single');
+
+	// Local branding settings
+	const [localLogoUrl, setLocalLogoUrl] = useState("");
+	const [localPrimaryColor, setLocalPrimaryColor] = useState("#F6EDE4");
+	const [localBackgroundColor, setLocalBackgroundColor] = useState("transparent");
+	const [localUseDefaultColors, setLocalUseDefaultColors] = useState(true);
+	const [localFontFamily, setLocalFontFamily] = useState("Arial");
+
+	// Function to sync local changes to actual state before preview
+	const syncLocalChangesToState = useCallback(() => {
+		setFormTitle(localFormTitle);
+		setFormDescription(localFormDescription);
+		setFormType(localFormType);
+		setFields(localFields);
+		setSteps(localSteps);
+		setLogoUrl(localLogoUrl);
+		setPrimaryColor(localPrimaryColor);
+		setBackgroundColor(localBackgroundColor);
+		setFontFamily(localFontFamily);
+		setUseDefaultColors(localUseDefaultColors);
+	}, [localFormTitle, localFormDescription, localFormType, localFields, localSteps, localLogoUrl, localPrimaryColor, localBackgroundColor, localFontFamily, localUseDefaultColors]);
+
+	// Helper function to get field descriptions
+	const getFieldDescription = useCallback((fieldType: SimplifiedFormField['type']) => {
+		const descriptions = {
+			text: "A single-line text input field for short text responses like names, titles, or brief answers.",
+			email: "An email input field with built-in validation to ensure proper email format.",
+			phone: "A phone number input field optimized for telephone number entry with formatting.",
+			select: "A dropdown menu allowing users to choose from predefined options. Perfect for categories or choices.",
+			checkbox: "A checkbox for yes/no questions or terms acceptance. Users can check or uncheck the option.",
+			textarea: "A multi-line text input for longer responses like comments, descriptions, or detailed feedback.",
+			heading: "A heading element to organize and structure your form with titles or section breaks.",
+			paragraph: "A paragraph element to add explanatory text, instructions, or additional information."
+		};
+		return descriptions[fieldType] || "A form field for collecting user input.";
+	}, []);
+
+	// Simple local update functions (no debouncing needed)
+	const handleFieldUpdate = useCallback((fieldId: string, updates: Partial<SimplifiedFormField>) => {
+		setLocalFields(prevFields => prevFields.map(field =>
+			field.id === fieldId ? { ...field, ...updates } : field
+		));
+	}, []);
+
+	const handleStepUpdate = useCallback((stepId: string, updates: Partial<FormStep>) => {
+		setLocalSteps(prevSteps => prevSteps.map(step =>
+			step.id === stepId ? { ...step, ...updates } : step
+		));
+	}, []);
 
 	// Color conversion utilities
 	const hexToRgb = (hex: string) => {
@@ -204,42 +265,19 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 
 	// Color presets
 	const primaryColorPresets = [
-		{ name: "Blue", value: "#3B82F6" },
-		{ name: "Purple", value: "#8B5CF6" },
-		{ name: "Indigo", value: "#6366F1" },
-		{ name: "Violet", value: "#645EFF" },
-		{ name: "Green", value: "#10B981" },
-		{ name: "Emerald", value: "#059669" },
-		{ name: "Teal", value: "#14B8A6" },
-		{ name: "Cyan", value: "#06B6D4" },
-		{ name: "Sky", value: "#0EA5E9" },
-		{ name: "Red", value: "#EF4444" },
-		{ name: "Rose", value: "#F43F5E" },
-		{ name: "Pink", value: "#EC4899" },
-		{ name: "Orange", value: "#F97316" },
-		{ name: "Amber", value: "#F59E0B" },
-		{ name: "Yellow", value: "#EAB308" },
-		{ name: "Lime", value: "#84CC16" },
-		{ name: "Slate", value: "#64748B" },
-		{ name: "Gray", value: "#6B7280" },
-		{ name: "Zinc", value: "#71717A" },
-		{ name: "Neutral", value: "#737373" }
+		{ name: "Warm Cream", value: "#F6EDE4" },
+		{ name: "Golden Beige", value: "#F6E5BA" },
+		{ name: "Peach", value: "#F3D2B3" },
+		{ name: "Lavender", value: "#DED2E0" },
+		{ name: "Mint Green", value: "#CCDECC" }
 	];
 
 	const backgroundColorPresets = [
-		{ name: "White", value: "#FFFFFF" },
-		{ name: "Light Gray", value: "#F8FAFC" },
-		{ name: "Gray", value: "#F1F5F9" },
-		{ name: "Slate", value: "#E2E8F0" },
-		{ name: "Zinc", value: "#F4F4F5" },
-		{ name: "Neutral", value: "#FAFAFA" },
-		{ name: "Stone", value: "#F5F5F4" },
-		{ name: "Dark", value: "#0A0A0A" },
-		{ name: "Dark Gray", value: "#1A1A1A" },
-		{ name: "Slate Dark", value: "#0F172A" },
-		{ name: "Zinc Dark", value: "#18181B" },
-		{ name: "Neutral Dark", value: "#171717" },
-		{ name: "Stone Dark", value: "#1C1917" },
+		{ name: "Deep Teal", value: "#1D434B" },
+		{ name: "Muted Rose", value: "#9C5B5F" },
+		{ name: "Golden Brown", value: "#C49B43" },
+		{ name: "Dark Purple", value: "#462E44" },
+		{ name: "Olive Green", value: "#4D532F" },
 		{ name: "Transparent", value: "transparent" }
 	];
 
@@ -255,17 +293,22 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 		if (initialTemplate && !formId) {
 			// Set form type
 			setFormType(initialTemplate.formType);
+			setLocalFormType(initialTemplate.formType);
 
 			// Set form title based on template
 			setFormTitle(initialTemplate.name);
+			setLocalFormTitle(initialTemplate.name);
 			setFormDescription(`Form created from ${initialTemplate.name} template`);
+			setLocalFormDescription(`Form created from ${initialTemplate.name} template`);
 
 			// Set fields from template
 			setFields(initialTemplate.fields);
+			setLocalFields(initialTemplate.fields);
 
 			// Set steps if it's a multi-step form
 			if (initialTemplate.formType === 'multi-step' && initialTemplate.steps) {
 				setSteps(initialTemplate.steps);
+				setLocalSteps(initialTemplate.steps);
 			}
 		}
 	}, [initialTemplate, formId]);
@@ -277,15 +320,22 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 			if (form) {
 				setCurrentForm(form);
 				setFormTitle(form.title);
+				setLocalFormTitle(form.title);
 				setFormDescription(form.description || "");
+				setLocalFormDescription(form.description || "");
 
 				// Load branding settings
 				const settings = form.settings || {};
 				setLogoUrl(settings.logoUrl || "");
+				setLocalLogoUrl(settings.logoUrl || "");
 				setPrimaryColor(settings.primaryColor || "#645EFF");
+				setLocalPrimaryColor(settings.primaryColor || "#645EFF");
 				setBackgroundColor(settings.backgroundColor || "transparent");
+				setLocalBackgroundColor(settings.backgroundColor || "transparent");
 				setFontFamily(settings.fontFamily || "Arial");
+				setLocalFontFamily(settings.fontFamily || "Arial");
 				setUseDefaultColors((form as any).use_default_colors !== false);
+				setLocalUseDefaultColors((form as any).use_default_colors !== false);
 
 				// If form_type is multi-step but no steps exist, treat as single
 				const hasSteps = form.steps && form.steps.length > 0;
@@ -293,6 +343,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 				const actualFormType = (formType === 'multi-step' && !hasSteps) ? 'single' : formType;
 
 				setFormType(actualFormType);
+				setLocalFormType(actualFormType);
 
 				// Convert database steps to session steps
 				const sessionSteps: FormStep[] = (form.steps || [])
@@ -304,6 +355,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 						order_index: step.order_index
 					}));
 				setSteps(sessionSteps);
+				setLocalSteps(sessionSteps);
 
 				// Convert database fields to session fields
 				const sessionFields: SimplifiedFormField[] = (form.fields || [])
@@ -319,6 +371,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 						step_id: field.step_id || undefined
 					}));
 				setFields(sessionFields);
+				setLocalFields(sessionFields);
 			}
 		} catch (error) {
 			console.error('Error loading form:', error);
@@ -328,7 +381,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 	};
 
 	const saveForm = async () => {
-		if (!formTitle.trim()) {
+		if (!localFormTitle.trim()) {
 			toast({
 				variant: "destructive",
 				title: "Form Title Required",
@@ -348,25 +401,28 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 
 		setIsSaving(true);
 		try {
+			// Sync local changes to state before saving
+			syncLocalChangesToState();
+
 			const formData = {
-				title: formTitle,
-				description: formDescription,
+				title: localFormTitle,
+				description: localFormDescription,
 				company_id: companyId,
-				form_type: formType,
-				use_default_colors: useDefaultColors,
+				form_type: localFormType,
+				use_default_colors: localUseDefaultColors,
 				settings: {
-					logoUrl,
-					primaryColor,
-					backgroundColor,
-					fontFamily
+					logoUrl: localLogoUrl,
+					primaryColor: localPrimaryColor,
+					backgroundColor: localBackgroundColor,
+					fontFamily: localFontFamily
 				},
-				steps: formType === 'multi-step' ? steps.map(step => ({
+				steps: localFormType === 'multi-step' ? localSteps.map(step => ({
 					id: step.id,
 					title: step.title,
 					description: step.description,
 					order_index: step.order_index
 				})) : [],
-				fields: fields.map(field => ({
+				fields: localFields.map(field => ({
 					type: field.type,
 					label: field.label,
 					placeholder: field.placeholder,
@@ -411,7 +467,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 
 	const addField = (type: SimplifiedFormField['type'], stepId?: string) => {
 		// Get the highest order_index for fields in the same step (or no step for single forms)
-		const relevantFields = fields.filter(field =>
+		const relevantFields = localFields.filter(field =>
 			stepId ? field.step_id === stepId : !field.step_id
 		);
 		const maxOrderIndex = relevantFields.length > 0
@@ -429,7 +485,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 			step_id: stepId,
 			order_index: maxOrderIndex + 1,
 		};
-		setFields([...fields, newField]);
+		setLocalFields([...localFields, newField]);
 	};
 
 	const handleDragStart = (event: any) => {
@@ -441,10 +497,10 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 		const { active, over } = event;
 
 		if (over && active.id !== over.id) {
-			const oldIndex = fields.findIndex(field => field.id === active.id);
-			const newIndex = fields.findIndex(field => field.id === over.id);
+			const oldIndex = localFields.findIndex(field => field.id === active.id);
+			const newIndex = localFields.findIndex(field => field.id === over.id);
 
-			const reorderedFields = arrayMove(fields, oldIndex, newIndex);
+			const reorderedFields = arrayMove(localFields, oldIndex, newIndex);
 
 			// Update order_index for all fields
 			const updatedFields = reorderedFields.map((field, index) => ({
@@ -452,43 +508,40 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 				order_index: index
 			}));
 
-			setFields(updatedFields);
+			setLocalFields(updatedFields);
 		}
-
-		// Prevent any default behavior that might cause scrolling
-		event.preventDefault?.();
 	};
 
 	const addStep = () => {
 		const newStep: FormStep = {
 			id: `step-${Date.now()}`,
-			title: `Step ${steps.length + 1}`,
+			title: `Step ${localSteps.length + 1}`,
 			description: '',
-			order_index: steps.length,
+			order_index: localSteps.length,
 		};
-		setSteps([...steps, newStep]);
+		setLocalSteps([...localSteps, newStep]);
 	};
 
-	const updateStep = (stepId: string, updates: Partial<FormStep>) => {
-		setSteps(steps.map(step =>
+	const updateStep = useCallback((stepId: string, updates: Partial<FormStep>) => {
+		setSteps(prevSteps => prevSteps.map(step =>
 			step.id === stepId ? { ...step, ...updates } : step
 		));
-	};
+	}, []);
 
-	const deleteStep = (stepId: string) => {
-		setSteps(steps.filter(step => step.id !== stepId));
-		setFields(fields.filter(field => field.step_id !== stepId));
-	};
+	const deleteStep = useCallback((stepId: string) => {
+		setLocalSteps(prevSteps => prevSteps.filter(step => step.id !== stepId));
+		setLocalFields(prevFields => prevFields.filter(field => field.step_id !== stepId));
+	}, []);
 
-	const updateField = (fieldId: string, updates: Partial<SimplifiedFormField>) => {
-		setFields(fields.map(field =>
+	const updateField = useCallback((fieldId: string, updates: Partial<SimplifiedFormField>) => {
+		setFields(prevFields => prevFields.map(field =>
 			field.id === fieldId ? { ...field, ...updates } : field
 		));
-	};
+	}, []);
 
-	const deleteField = (fieldId: string) => {
-		setFields(fields.filter(field => field.id !== fieldId));
-	};
+	const deleteField = useCallback((fieldId: string) => {
+		setLocalFields(prevFields => prevFields.filter(field => field.id !== fieldId));
+	}, []);
 
 	// Image handling functions
 	const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -519,6 +572,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 			reader.onload = (e) => {
 				const result = e.target?.result as string;
 				setLogoUrl(result);
+				setLocalLogoUrl(result);
 			};
 			reader.readAsDataURL(file);
 		}
@@ -553,6 +607,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 			reader.onload = (e) => {
 				const result = e.target?.result as string;
 				setLogoUrl(result);
+				setLocalLogoUrl(result);
 			};
 			reader.readAsDataURL(file);
 		}
@@ -564,6 +619,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 
 	const clearLogo = () => {
 		setLogoUrl("");
+		setLocalLogoUrl("");
 		if (fileInputRef.current) {
 			fileInputRef.current.value = "";
 		}
@@ -860,7 +916,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 	};
 
 	// Sortable Field Component
-	const SortableField = ({ field, index }: { field: SimplifiedFormField; index: number }) => {
+	const SortableField = useCallback(({ field, index }: { field: SimplifiedFormField; index: number }) => {
 		const {
 			attributes,
 			listeners,
@@ -870,11 +926,11 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 			isDragging,
 		} = useSortable({ id: field.id });
 
-		const style = {
+		const style = useMemo(() => ({
 			transform: CSS.Transform.toString(transform),
 			transition,
 			opacity: isDragging ? 0.5 : 1,
-		};
+		}), [transform, transition, isDragging]);
 
 		return (
 			<div
@@ -895,9 +951,21 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 							>
 								<GripVertical className="h-4 w-4 text-gray-400" />
 							</button>
-							<h3 className="text-lg font-semibold capitalize">
-								{field.type === 'heading' ? 'Heading' : field.type === 'paragraph' ? 'Paragraph' : `${field.type} Field`}
-							</h3>
+							<div className="flex items-center gap-2">
+								<h3 className="text-lg font-semibold capitalize">
+									{field.type === 'heading' ? 'Heading' : field.type === 'paragraph' ? 'Paragraph' : `${field.type} Field`}
+								</h3>
+								<TooltipProvider>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<Info className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
+										</TooltipTrigger>
+										<TooltipContent className="max-w-xs">
+											<p className="text-sm">{getFieldDescription(field.type)}</p>
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+							</div>
 						</div>
 						<Button
 							variant="outline"
@@ -920,7 +988,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 									<Textarea
 										id={`content-${field.id}`}
 										value={field.content || ''}
-										onChange={(e) => updateField(field.id, { content: e.target.value })}
+										onChange={(e) => handleFieldUpdate(field.id, { content: e.target.value })}
 										placeholder={field.type === 'heading' ? 'Enter heading text...' : 'Enter paragraph text...'}
 									/>
 								</div>
@@ -932,7 +1000,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 									<Input
 										id={`label-${field.id}`}
 										value={field.label || ''}
-										onChange={(e) => updateField(field.id, { label: e.target.value })}
+										onChange={(e) => handleFieldUpdate(field.id, { label: e.target.value })}
 										placeholder="Enter field label..."
 									/>
 								</div>
@@ -942,7 +1010,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 									<Input
 										id={`placeholder-${field.id}`}
 										value={field.placeholder || ''}
-										onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
+										onChange={(e) => handleFieldUpdate(field.id, { placeholder: e.target.value })}
 										placeholder="Enter placeholder text..."
 									/>
 								</div>
@@ -971,7 +1039,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 															const newOptions = (field.options || []).filter((_, i) => i !== index);
 															updateField(field.id, { options: newOptions });
 														}}
-														className="w-8 h-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+														className="w-8 h-8 p-0 min-w-8 min-h-8 max-w-8 max-h-8 text-red-500 hover:text-red-700 hover:bg-red-50"
 													>
 														<Trash2 className="h-4 w-4" />
 													</Button>
@@ -1008,16 +1076,28 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 				</Card>
 			</div>
 		);
-	};
+	}, [deleteField, getFieldDescription]);
 
-	const renderField = (field: SimplifiedFormField, index: number) => {
+	// Memoize sorted fields to prevent unnecessary re-sorting
+	const sortedFields = useMemo(() =>
+		localFields.sort((a, b) => (a.order_index || 0) - (b.order_index || 0)),
+		[localFields]
+	);
+
+	// Memoize sorted steps to prevent unnecessary re-sorting
+	const sortedSteps = useMemo(() =>
+		localSteps.sort((a, b) => (a.order_index || 0) - (b.order_index || 0)),
+		[localSteps]
+	);
+
+	const renderField = useCallback((field: SimplifiedFormField, index: number) => {
 		if (isPreview) {
 			// Use theme-aware colors when use_default_colors is true
-			const isDarkMode = useDefaultColors ? false : (backgroundColor === '#0A0A0A' || backgroundColor === 'transparent');
-			const textColor = useDefaultColors ? 'hsl(var(--foreground))' : (isDarkMode ? '#ffffff' : '#1a1a1a');
-			const mutedTextColor = useDefaultColors ? 'hsl(var(--muted-foreground))' : (isDarkMode ? '#a0a0a0' : '#6b7280');
-			const borderColor = useDefaultColors ? 'hsl(var(--border))' : (isDarkMode ? '#374151' : '#d1d5db');
-			const inputBgColor = useDefaultColors ? 'hsl(var(--input))' : (isDarkMode ? '#374151' : '#ffffff');
+			const isDarkMode = localUseDefaultColors ? false : (localBackgroundColor === '#0A0A0A' || localBackgroundColor === 'transparent');
+			const textColor = localUseDefaultColors ? 'hsl(var(--foreground))' : (isDarkMode ? '#ffffff' : '#1a1a1a');
+			const mutedTextColor = localUseDefaultColors ? 'hsl(var(--muted-foreground))' : (isDarkMode ? '#a0a0a0' : '#6b7280');
+			const borderColor = localUseDefaultColors ? 'hsl(var(--border))' : (isDarkMode ? '#374151' : '#d1d5db');
+			const inputBgColor = localUseDefaultColors ? 'hsl(var(--input))' : (isDarkMode ? '#374151' : '#ffffff');
 
 			switch (field.type) {
 				case 'heading':
@@ -1210,7 +1290,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 						<Textarea
 							id={`content-${field.id}`}
 							value={field.content || ''}
-							onChange={(e) => updateField(field.id, { content: e.target.value })}
+							onChange={(e) => handleFieldUpdate(field.id, { content: e.target.value })}
 							placeholder={field.type === 'heading' ? 'Enter heading text...' : 'Enter paragraph text...'}
 						/>
 					</div>
@@ -1221,7 +1301,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 							<Input
 								id={`label-${field.id}`}
 								value={field.label || ''}
-								onChange={(e) => updateField(field.id, { label: e.target.value })}
+								onChange={(e) => handleFieldUpdate(field.id, { label: e.target.value })}
 								placeholder="Enter field label..."
 							/>
 						</div>
@@ -1231,7 +1311,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 							<Input
 								id={`placeholder-${field.id}`}
 								value={field.placeholder || ''}
-								onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
+								onChange={(e) => handleFieldUpdate(field.id, { placeholder: e.target.value })}
 								placeholder="Enter placeholder text..."
 							/>
 						</div>
@@ -1260,7 +1340,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 													const newOptions = (field.options || []).filter((_, i) => i !== index);
 													updateField(field.id, { options: newOptions });
 												}}
-												className="w-8 h-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+												className="w-8 h-8 p-0 min-w-8 min-h-8 max-w-8 max-h-8 text-red-500 hover:text-red-700 hover:bg-red-50"
 											>
 												<Trash2 className="h-4 w-4" />
 											</Button>
@@ -1295,14 +1375,14 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 				)}
 			</Card>
 		);
-	};
+	}, [isPreview, localUseDefaultColors, localBackgroundColor, localPrimaryColor, handleFieldUpdate, updateField]);
 
 	if (isLoading) {
 		return <div className="p-4">Loading form...</div>;
 	}
 
 	return (
-		<div className={`${!isPreview ? 'max-w-4xl mx-auto p-6' : ''}  space-y-6`}>
+		<div className={`${!isPreview ? 'max-w-4xl mx-auto p-6 pb-40' : ''}  space-y-6`}>
 			<div className={`flex items-center justify-between ${isPreview ? 'px-6 pt-6' : ''}`}>
 				<h1 className="text-2xl font-bold">
 					{currentForm ? 'Edit Form' : 'Create New Form'}
@@ -1310,7 +1390,12 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 				<div className="flex items-center space-x-2">
 					<Button
 						variant={isPreview ? "default" : "outline"}
-						onClick={() => setIsPreview(!isPreview)}
+						onClick={() => {
+							if (!isPreview) {
+								syncLocalChangesToState();
+							}
+							setIsPreview(!isPreview);
+						}}
 						className={isPreview ? "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500" : ""}
 					>
 						{isPreview ? 'Edit' : 'Preview'}
@@ -1325,6 +1410,37 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 				</div>
 			</div>
 
+			{/* Fixed Preview Alert - Bottom Right */}
+			{!isPreview && (
+				<div className="fixed bottom-4 right-4 z-50 w-full max-w-sm bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 shadow-lg">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+								<Eye className="h-4 w-4 text-white" />
+							</div>
+							<div>
+								<h3 className="font-semibold text-blue-900 dark:text-blue-100">
+									Preview the changes
+								</h3>
+								<p className="text-sm text-blue-700 dark:text-blue-300">
+									See how your form will look to users before saving
+								</p>
+							</div>
+						</div>
+						<Button
+							onClick={() => {
+								syncLocalChangesToState();
+								setShowPreviewModal(true);
+							}}
+							className="bg-blue-500 hover:bg-blue-600 text-white"
+						>
+							<Eye className="h-4 w-4 mr-2" />
+							Preview
+						</Button>
+					</div>
+				</div>
+			)}
+
 			{!isPreview && (
 				<>
 					<Card className="p-4 space-y-4">
@@ -1332,8 +1448,8 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 							<Label htmlFor="form-title">Form Title</Label>
 							<Input
 								id="form-title"
-								value={formTitle}
-								onChange={(e) => setFormTitle(e.target.value)}
+								value={localFormTitle}
+								onChange={(e) => setLocalFormTitle(e.target.value)}
 								placeholder="Enter form title..."
 							/>
 						</div>
@@ -1341,14 +1457,14 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 							<Label htmlFor="form-description">Form Description</Label>
 							<Textarea
 								id="form-description"
-								value={formDescription}
-								onChange={(e) => setFormDescription(e.target.value)}
+								value={localFormDescription}
+								onChange={(e) => setLocalFormDescription(e.target.value)}
 								placeholder="Enter form description..."
 							/>
 						</div>
 						<div className="space-y-2">
 							<Label htmlFor="form-type">Form Type</Label>
-							<Select value={formType} onValueChange={(value: 'single' | 'multi-step') => setFormType(value)}>
+							<Select value={localFormType} onValueChange={(value: 'single' | 'multi-step') => setLocalFormType(value)}>
 								<SelectTrigger>
 									<SelectValue placeholder="Select form type" />
 								</SelectTrigger>
@@ -1367,8 +1483,8 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 						<div className="flex items-center space-x-2">
 							<Checkbox
 								id="use-default-colors"
-								checked={useDefaultColors}
-								onCheckedChange={(checked) => setUseDefaultColors(!!checked)}
+								checked={localUseDefaultColors}
+								onCheckedChange={(checked) => setLocalUseDefaultColors(!!checked)}
 							/>
 							<Label htmlFor="use-default-colors" className="text-sm">
 								Use default color settings for new forms
@@ -1443,8 +1559,8 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 								</Label>
 								<Input
 									id="logo-url"
-									value={logoUrl.startsWith('data:') ? '' : logoUrl}
-									onChange={(e) => setLogoUrl(e.target.value)}
+									value={localLogoUrl.startsWith('data:') ? '' : localLogoUrl}
+									onChange={(e) => setLocalLogoUrl(e.target.value)}
 									placeholder="https://example.com/logo.png"
 									className="text-sm"
 								/>
@@ -1464,16 +1580,16 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 									<div className="flex items-center space-x-3">
 										<div
 											className="w-12 h-12 rounded-lg border-2 border-border shadow-sm cursor-pointer"
-											style={{ backgroundColor: primaryColor }}
+											style={{ backgroundColor: localPrimaryColor }}
 											onClick={() => {
-												setTempColor(primaryColor);
+												setTempColor(localPrimaryColor);
 												setShowColorPicker('primary');
 											}}
 										/>
 										<div className="flex-1">
 											<Input
-												value={primaryColor}
-												onChange={(e) => setPrimaryColor(e.target.value)}
+												value={localPrimaryColor}
+												onChange={(e) => setLocalPrimaryColor(e.target.value)}
 												placeholder="#000000"
 												className="font-mono text-sm"
 											/>
@@ -1482,7 +1598,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 											variant="outline"
 											size="sm"
 											onClick={() => {
-												setTempColor(primaryColor);
+												setTempColor(localPrimaryColor);
 												setShowColorPicker('primary');
 											}}
 										>
@@ -1498,8 +1614,8 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 												<button
 													key={preset.value}
 													type="button"
-													onClick={() => setPrimaryColor(preset.value)}
-													className={`w-8 h-8 rounded-md border-2 transition-all hover:scale-110 ${primaryColor === preset.value
+													onClick={() => setLocalPrimaryColor(preset.value)}
+													className={`w-8 h-8 rounded-md border-2 transition-all hover:scale-110 ${localPrimaryColor === preset.value
 														? 'border-foreground ring-2 ring-foreground ring-offset-2'
 														: 'border-border hover:border-foreground/50'
 														}`}
@@ -1520,16 +1636,16 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 									<div className="flex items-center space-x-3">
 										<div
 											className="w-12 h-12 rounded-lg border-2 border-border shadow-sm cursor-pointer"
-											style={{ backgroundColor: backgroundColor }}
+											style={{ backgroundColor: localBackgroundColor }}
 											onClick={() => {
-												setTempColor(backgroundColor);
+												setTempColor(localBackgroundColor);
 												setShowColorPicker('background');
 											}}
 										/>
 										<div className="flex-1">
 											<Input
-												value={backgroundColor}
-												onChange={(e) => setBackgroundColor(e.target.value)}
+												value={localBackgroundColor}
+												onChange={(e) => setLocalBackgroundColor(e.target.value)}
 												placeholder="transparent"
 												className="font-mono text-sm"
 											/>
@@ -1538,7 +1654,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 											variant="outline"
 											size="sm"
 											onClick={() => {
-												setTempColor(backgroundColor);
+												setTempColor(localBackgroundColor);
 												setShowColorPicker('background');
 											}}
 										>
@@ -1549,15 +1665,17 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 									{/* Preset Colors */}
 									<div className="space-y-2">
 										<p className="text-sm text-muted-foreground">Preset Colors:</p>
-										<div className="grid grid-cols-5 gap-2">
+										<div className="grid grid-cols-6 gap-2">
 											{backgroundColorPresets.map((preset) => (
 												<button
 													key={preset.value}
 													type="button"
-													onClick={() => setBackgroundColor(preset.value)}
-													className={`w-8 h-8 rounded-md border-2 transition-all hover:scale-110 ${backgroundColor === preset.value
+													onClick={() => setLocalBackgroundColor(preset.value)}
+													className={`w-8 h-8 rounded-md border-2 transition-all hover:scale-110 ${localBackgroundColor === preset.value
 														? 'border-foreground ring-2 ring-foreground ring-offset-2'
-														: 'border-border hover:border-foreground/50'
+														: preset.value === 'transparent'
+															? 'border-red-500 hover:border-red-600'
+															: 'border-border hover:border-foreground/50'
 														}`}
 													style={{ backgroundColor: preset.value }}
 													title={preset.name}
@@ -1571,7 +1689,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 
 						<div className="space-y-2">
 							<Label htmlFor="font-family">Font Family</Label>
-							<Select value={fontFamily} onValueChange={setFontFamily}>
+							<Select value={localFontFamily} onValueChange={setLocalFontFamily}>
 								<SelectTrigger>
 									<SelectValue placeholder="Select a font" />
 								</SelectTrigger>
@@ -1596,46 +1714,46 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 			{isPreview && (
 				<div
 					className="p-6 min-h-screen"
-					style={{ backgroundColor, fontFamily }}
+					style={{ backgroundColor: localBackgroundColor, fontFamily: localFontFamily }}
 				>
 					{/* Header Card with Logo */}
 					<Card
-						className={`max-w-2xl mx-auto mb-6 p-4 shadow-lg border-0 ${useDefaultColors ? 'bg-card' : ''
+						className={`max-w-2xl mx-auto mb-6 p-4 shadow-lg border-0 ${localUseDefaultColors ? 'bg-card' : ''
 							}`}
 						style={{
-							backgroundColor: useDefaultColors ? undefined : (backgroundColor === 'transparent' ? 'transparent' : (backgroundColor === '#0A0A0A' ? '#1a1a1a' : '#ffffff')),
-							borderColor: useDefaultColors ? 'hsl(var(--border))' : (primaryColor + '20')
+							backgroundColor: localUseDefaultColors ? undefined : (localBackgroundColor === 'transparent' ? 'transparent' : (localBackgroundColor === '#0A0A0A' ? '#1a1a1a' : '#ffffff')),
+							borderColor: localUseDefaultColors ? 'hsl(var(--border))' : (localPrimaryColor + '20')
 						}}
 					>
 						<div className="flex items-center justify-between">
 							<div className="flex-1">
 								<h1
-									className={`text-xl font-semibold ${useDefaultColors ? 'text-foreground' : ''}`}
-									style={{ color: useDefaultColors ? undefined : (backgroundColor === '#0A0A0A' ? '#ffffff' : '#1a1a1a') }}
+									className={`text-xl font-semibold ${localUseDefaultColors ? 'text-foreground' : ''}`}
+									style={{ color: localUseDefaultColors ? undefined : (localBackgroundColor === '#0A0A0A' ? '#ffffff' : '#1a1a1a') }}
 								>
-									{formTitle}
+									{localFormTitle}
 								</h1>
-								{formDescription && (
+								{localFormDescription && (
 									<p
-										className={`text-sm mt-1 ${useDefaultColors ? 'text-muted-foreground' : ''}`}
-										style={{ color: useDefaultColors ? undefined : (backgroundColor === '#0A0A0A' ? '#a0a0a0' : '#6b7280') }}
+										className={`text-sm mt-1 ${localUseDefaultColors ? 'text-muted-foreground' : ''}`}
+										style={{ color: localUseDefaultColors ? undefined : (localBackgroundColor === '#0A0A0A' ? '#a0a0a0' : '#6b7280') }}
 									>
-										{formDescription}
+										{localFormDescription}
 									</p>
 								)}
 							</div>
-							{logoUrl && (
+							{localLogoUrl && (
 								<div className="ml-4">
 									<div
 										className="h-16 w-16 rounded-lg flex items-center justify-center"
 										style={{
-											backgroundColor: useDefaultColors
+											backgroundColor: localUseDefaultColors
 												? 'hsl(var(--muted-foreground))'
-												: (backgroundColor === '#0A0A0A' ? '#1f2937' : '#e5e7eb')
+												: (localBackgroundColor === '#0A0A0A' ? '#1f2937' : '#e5e7eb')
 										}}
 									>
 										<img
-											src={logoUrl}
+											src={localLogoUrl}
 											alt="Organization Logo"
 											className="h-14 w-14 object-contain"
 											onError={(e) => {
@@ -1651,28 +1769,28 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 
 					{/* Form Content Card */}
 					<Card
-						className={`max-w-2xl mx-auto p-6 shadow-xl border-0 ${useDefaultColors ? 'bg-card' : ''
+						className={`max-w-2xl mx-auto p-6 shadow-xl border-0 ${localUseDefaultColors ? 'bg-card' : ''
 							}`}
 						style={{
-							backgroundColor: useDefaultColors ? undefined : (backgroundColor === 'transparent' ? 'transparent' : (backgroundColor === '#0A0A0A' ? '#1a1a1a' : '#ffffff')),
-							borderColor: useDefaultColors ? 'hsl(var(--border))' : (primaryColor + '20')
+							backgroundColor: localUseDefaultColors ? undefined : (localBackgroundColor === 'transparent' ? 'transparent' : (localBackgroundColor === '#0A0A0A' ? '#1a1a1a' : '#ffffff')),
+							borderColor: localUseDefaultColors ? 'hsl(var(--border))' : (localPrimaryColor + '20')
 						}}
 					>
 						<form className="space-y-6">
 							{/* Step Progress Indicator */}
-							{formType === 'multi-step' && steps.length > 0 && (
+							{localFormType === 'multi-step' && localSteps.length > 0 && (
 								<div className="mb-6">
 									<div className="flex items-center justify-between mb-2">
 										<span className="text-sm font-medium text-muted-foreground">
-											Step {1} of {steps.length}
+											Step {1} of {localSteps.length}
 										</span>
 									</div>
 									<div className="w-full bg-muted rounded-full h-2">
 										<div
 											className="h-2 rounded-full transition-all duration-300"
 											style={{
-												width: `${(1 / steps.length) * 100}%`,
-												backgroundColor: useDefaultColors ? 'hsl(var(--primary))' : primaryColor
+												width: `${(1 / localSteps.length) * 100}%`,
+												backgroundColor: localUseDefaultColors ? 'hsl(var(--primary))' : localPrimaryColor
 											}}
 										/>
 									</div>
@@ -1687,14 +1805,12 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 									onDragEnd={handleDragEnd}
 								>
 									<SortableContext
-										items={fields.map(field => field.id)}
+										items={sortedFields.map(field => field.id)}
 										strategy={verticalListSortingStrategy}
 									>
-										{fields
-											.sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
-											.map((field, index) => (
-												<SortableField key={field.id} field={field} index={index} />
-											))}
+										{sortedFields.map((field, index) => (
+											<SortableField key={field.id} field={field} index={index} />
+										))}
 									</SortableContext>
 								</DndContext>
 							</div>
@@ -1705,7 +1821,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 
 			{!isPreview && (
 				<>
-					{formType === 'multi-step' && (
+					{localFormType === 'multi-step' && (
 						<Card className="p-4">
 							<div className="flex items-center justify-between mb-4">
 								<h3 className="text-lg font-semibold">Form Steps</h3>
@@ -1717,131 +1833,140 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 								</Button>
 							</div>
 							<div className="space-y-4">
-								{steps
-									.sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
-									.map((step, index) => (
-										<Card key={step.id} className="p-4">
-											<div className="flex items-center justify-between mb-4">
+								{sortedSteps.map((step, index) => (
+									<Card key={step.id} className="p-4">
+										<div className="flex items-center justify-between mb-4">
+											<div className="flex items-center gap-2">
 												<span className="text-sm font-medium text-gray-500">
 													Step {index + 1}
 												</span>
-												<Button
-													variant="outline"
-													size="sm"
-													onClick={() => deleteStep(step.id)}
-												>
-													Delete Step
-												</Button>
+												<TooltipProvider>
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<Info className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
+														</TooltipTrigger>
+														<TooltipContent className="max-w-xs">
+															<p className="text-sm">A step in a multi-step form. Each step can contain multiple fields and helps organize complex forms into manageable sections.</p>
+														</TooltipContent>
+													</Tooltip>
+												</TooltipProvider>
+											</div>
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => deleteStep(step.id)}
+											>
+												Delete Step
+											</Button>
+										</div>
+										<div className="space-y-4">
+											<div className="space-y-2">
+												<Label htmlFor={`step-title-${step.id}`}>Step Title</Label>
+												<Input
+													id={`step-title-${step.id}`}
+													value={step.title}
+													onChange={(e) => handleStepUpdate(step.id, { title: e.target.value })}
+													placeholder="Enter step title..."
+												/>
+											</div>
+											<div className="space-y-2">
+												<Label htmlFor={`step-description-${step.id}`}>Step Description</Label>
+												<Textarea
+													id={`step-description-${step.id}`}
+													value={step.description || ''}
+													onChange={(e) => handleStepUpdate(step.id, { description: e.target.value })}
+													placeholder="Enter step description..."
+												/>
 											</div>
 											<div className="space-y-4">
-												<div className="space-y-2">
-													<Label htmlFor={`step-title-${step.id}`}>Step Title</Label>
-													<Input
-														id={`step-title-${step.id}`}
-														value={step.title}
-														onChange={(e) => updateStep(step.id, { title: e.target.value })}
-														placeholder="Enter step title..."
-													/>
-												</div>
-												<div className="space-y-2">
-													<Label htmlFor={`step-description-${step.id}`}>Step Description</Label>
-													<Textarea
-														id={`step-description-${step.id}`}
-														value={step.description || ''}
-														onChange={(e) => updateStep(step.id, { description: e.target.value })}
-														placeholder="Enter step description..."
-													/>
+												<div className="flex items-center justify-between">
+													<h4 className="text-md font-medium">Step Fields</h4>
+													<div className="flex flex-wrap gap-2">
+														<Button
+															size="sm"
+															onClick={() => addField('text', step.id)}
+															className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
+														>
+															+ Text
+														</Button>
+														<Button
+															size="sm"
+															onClick={() => addField('email', step.id)}
+															className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
+														>
+															+ Email
+														</Button>
+														<Button
+															size="sm"
+															onClick={() => addField('phone', step.id)}
+															className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
+														>
+															+ Phone
+														</Button>
+														<Button
+															size="sm"
+															onClick={() => addField('select', step.id)}
+															className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
+														>
+															+ Select
+														</Button>
+														<Button
+															size="sm"
+															onClick={() => addField('checkbox', step.id)}
+															className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
+														>
+															+ Checkbox
+														</Button>
+														<Button
+															size="sm"
+															onClick={() => addField('textarea', step.id)}
+															className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
+														>
+															+ Textarea
+														</Button>
+														<Button
+															size="sm"
+															onClick={() => addField('heading', step.id)}
+															className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
+														>
+															+ Heading
+														</Button>
+														<Button
+															size="sm"
+															onClick={() => addField('paragraph', step.id)}
+															className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
+														>
+															+ Paragraph
+														</Button>
+													</div>
 												</div>
 												<div className="space-y-4">
-													<div className="flex items-center justify-between">
-														<h4 className="text-md font-medium">Step Fields</h4>
-														<div className="flex flex-wrap gap-2">
-															<Button
-																size="sm"
-																onClick={() => addField('text', step.id)}
-																className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
-															>
-																+ Text
-															</Button>
-															<Button
-																size="sm"
-																onClick={() => addField('email', step.id)}
-																className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
-															>
-																+ Email
-															</Button>
-															<Button
-																size="sm"
-																onClick={() => addField('phone', step.id)}
-																className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
-															>
-																+ Phone
-															</Button>
-															<Button
-																size="sm"
-																onClick={() => addField('select', step.id)}
-																className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
-															>
-																+ Select
-															</Button>
-															<Button
-																size="sm"
-																onClick={() => addField('checkbox', step.id)}
-																className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
-															>
-																+ Checkbox
-															</Button>
-															<Button
-																size="sm"
-																onClick={() => addField('textarea', step.id)}
-																className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
-															>
-																+ Textarea
-															</Button>
-															<Button
-																size="sm"
-																onClick={() => addField('heading', step.id)}
-																className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
-															>
-																+ Heading
-															</Button>
-															<Button
-																size="sm"
-																onClick={() => addField('paragraph', step.id)}
-																className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-white shadow hover:shadow-lg bg-gradient-to-r from-indigo-500 to-violet-500"
-															>
-																+ Paragraph
-															</Button>
-														</div>
-													</div>
-													<div className="space-y-4">
-														<DndContext
-															sensors={sensors}
-															collisionDetection={closestCenter}
-															onDragEnd={handleDragEnd}
+													<DndContext
+														sensors={sensors}
+														collisionDetection={closestCenter}
+														onDragEnd={handleDragEnd}
+													>
+														<SortableContext
+															items={sortedFields.filter(field => field.step_id === step.id).map(field => field.id)}
+															strategy={verticalListSortingStrategy}
 														>
-															<SortableContext
-																items={fields.filter(field => field.step_id === step.id).map(field => field.id)}
-																strategy={verticalListSortingStrategy}
-															>
-																{fields
-																	.filter(field => field.step_id === step.id)
-																	.sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
-																	.map((field, fieldIndex) => (
-																		<SortableField key={field.id} field={field} index={fieldIndex} />
-																	))}
-															</SortableContext>
-														</DndContext>
-													</div>
+															{sortedFields
+																.filter(field => field.step_id === step.id)
+																.map((field, fieldIndex) => (
+																	<SortableField key={field.id} field={field} index={fieldIndex} />
+																))}
+														</SortableContext>
+													</DndContext>
 												</div>
 											</div>
-										</Card>
-									))}
+										</div>
+									</Card>
+								))}
 							</div>
 						</Card>
 					)}
 
-					{formType !== 'multi-step' && (
+					{localFormType !== 'multi-step' && (
 						<Card className="p-4">
 							<div className="flex items-center justify-between mb-4">
 								<h3 className="text-lg font-semibold">
@@ -1914,12 +2039,11 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 									onDragEnd={handleDragEnd}
 								>
 									<SortableContext
-										items={fields.filter(field => !field.step_id).map(field => field.id)}
+										items={sortedFields.filter(field => !field.step_id).map(field => field.id)}
 										strategy={verticalListSortingStrategy}
 									>
-										{fields
+										{sortedFields
 											.filter(field => !field.step_id)
-											.sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
 											.map((field, index) => (
 												<SortableField key={field.id} field={field} index={index} />
 											))}
@@ -1937,9 +2061,9 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 				currentColor={tempColor}
 				onColorChange={(color) => {
 					if (showColorPicker === 'primary') {
-						setPrimaryColor(color);
+						setLocalPrimaryColor(color);
 					} else if (showColorPicker === 'background') {
-						setBackgroundColor(color);
+						setLocalBackgroundColor(color);
 					}
 				}}
 				isOpen={showColorPicker === 'primary'}
@@ -1951,13 +2075,37 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 				currentColor={tempColor}
 				onColorChange={(color) => {
 					if (showColorPicker === 'primary') {
-						setPrimaryColor(color);
+						setLocalPrimaryColor(color);
 					} else if (showColorPicker === 'background') {
-						setBackgroundColor(color);
+						setLocalBackgroundColor(color);
 					}
 				}}
 				isOpen={showColorPicker === 'background'}
 				onClose={() => setShowColorPicker(null)}
+			/>
+
+			{/* Form Preview Modal */}
+			<FormPreviewModal
+				isOpen={showPreviewModal}
+				onClose={() => setShowPreviewModal(false)}
+				formData={{
+					title: localFormTitle,
+					description: localFormDescription,
+					fields: localFields.map(field => ({
+						id: field.id,
+						type: field.type,
+						label: field.label || '',
+						placeholder: field.placeholder,
+						content: field.content,
+						required: field.required || false,
+						options: field.options
+					})),
+					primaryColor: localPrimaryColor,
+					backgroundColor: localBackgroundColor,
+					fontFamily: localFontFamily,
+					logoUrl: localLogoUrl,
+					useDefaultColors: localUseDefaultColors
+				}}
 			/>
 		</div>
 	);

@@ -12,6 +12,9 @@ import { FormsService } from "@/lib/forms";
 import { FormWithFields } from "@/types/database";
 import { Eye, Download, Search, Calendar, User, Mail, TrendingUp, BarChart3, Clock, Filter } from "lucide-react";
 import Link from "next/link";
+import ExportFormModal from "@/components/export-form-modal";
+import ExportFormatDropdown from "@/components/export-format-dropdown";
+import { fetchFormExportData, exportToCSV, exportToExcel, exportToJSON } from "@/lib/export-utils";
 
 interface FormResponse {
 	id: string;
@@ -42,6 +45,8 @@ export default function AllLeadsView({ companyId, userId }: AllLeadsViewProps) {
 	const [error, setError] = useState<string | null>(null);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [selectedForm, setSelectedForm] = useState("all");
+	const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+	const [isExporting, setIsExporting] = useState(false);
 	const { resolvedTheme } = useTheme();
 
 	useEffect(() => {
@@ -109,28 +114,33 @@ export default function AllLeadsView({ companyId, userId }: AllLeadsViewProps) {
 	};
 
 
-	const exportToCSV = () => {
-		const csvData = filteredResponses.map(response => {
-			return {
-				'Form': response.form_title,
-				'Created By': response.submitted_by,
-				'Submitted': new Date(response.submitted_at).toLocaleString()
-			};
-		});
+	const handleExport = async (formId: string, format: 'csv' | 'excel' | 'json') => {
+		try {
+			setIsExporting(true);
 
-		const headers = ['Form', 'Created By', 'Submitted'];
-		const csvContent = [
-			headers.join(','),
-			...csvData.map(row => Object.values(row).map(value => `"${value}"`).join(','))
-		].join('\n');
+			// Fetch the form data
+			const exportData = await fetchFormExportData(formId);
 
-		const blob = new Blob([csvContent], { type: 'text/csv' });
-		const url = window.URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = `form-submissions-${new Date().toISOString().split('T')[0]}.csv`;
-		a.click();
-		window.URL.revokeObjectURL(url);
+			// Export based on format
+			switch (format) {
+				case 'csv':
+					exportToCSV(exportData);
+					break;
+				case 'excel':
+					exportToExcel(exportData);
+					break;
+				case 'json':
+					exportToJSON(exportData);
+					break;
+				default:
+					throw new Error('Unsupported export format');
+			}
+		} catch (error) {
+			console.error('Export failed:', error);
+			alert('Export failed. Please try again.');
+		} finally {
+			setIsExporting(false);
+		}
 	};
 
 	if (isLoading) {
@@ -178,14 +188,38 @@ export default function AllLeadsView({ companyId, userId }: AllLeadsViewProps) {
 								Track and analyze all form submissions across your community
 							</p>
 						</div>
-						<Button
-							onClick={exportToCSV}
-							className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-medium text-white shadow-lg hover:shadow-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 transition-all duration-200"
-							disabled={filteredResponses.length === 0}
-						>
-							<Download className="h-5 w-5" />
-							Export Data
-						</Button>
+						{/* Conditional Export UI */}
+						{selectedForm !== "all" ? (
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<ExportFormatDropdown
+										formId={selectedForm}
+										formTitle={forms.find(f => f.id === selectedForm)?.title || 'Selected Form'}
+										onExport={handleExport}
+										isExporting={isExporting}
+									/>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Export data from "{forms.find(f => f.id === selectedForm)?.title}"</p>
+								</TooltipContent>
+							</Tooltip>
+						) : (
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										onClick={() => setIsExportModalOpen(true)}
+										className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-medium text-white shadow-lg hover:shadow-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 transition-all duration-200"
+										disabled={forms.length === 0 || isExporting}
+									>
+										<Download className="h-5 w-5" />
+										{isExporting ? 'Exporting...' : 'Export Data'}
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Choose a form to export data from</p>
+								</TooltipContent>
+							</Tooltip>
+						)}
 					</div>
 				</div>
 
@@ -373,6 +407,16 @@ export default function AllLeadsView({ companyId, userId }: AllLeadsViewProps) {
 					</Card>
 				)}
 			</div>
+
+			{/* Export Modal - only show when no specific form is selected */}
+			{selectedForm === "all" && (
+				<ExportFormModal
+					forms={forms}
+					isOpen={isExportModalOpen}
+					onClose={() => setIsExportModalOpen(false)}
+					onExport={handleExport}
+				/>
+			)}
 		</TooltipProvider>
 	);
 }
