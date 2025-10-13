@@ -18,6 +18,7 @@ interface FormPreviewModalProps {
 	formData: {
 		title: string;
 		description: string;
+		formType?: 'single' | 'multi-step';
 		fields: Array<{
 			id: string;
 			type: string;
@@ -26,6 +27,14 @@ interface FormPreviewModalProps {
 			content?: string;
 			required: boolean;
 			options?: string[];
+			step_id?: string;
+			order_index?: number;
+		}>;
+		steps?: Array<{
+			id: string;
+			title: string;
+			description?: string;
+			order_index: number;
 		}>;
 		primaryColor: string;
 		backgroundColor: string;
@@ -384,47 +393,128 @@ export default function FormPreviewModal({ isOpen, onClose, formData }: FormPrev
 						</div>
 					</Card>
 
-					<Card
-						className="max-w-2xl mx-auto p-6 shadow-xl border-0"
-						style={{
-							backgroundColor: colors.cardBgColor,
-							borderColor: primaryColor + '20',
-							boxShadow: isDarkMode ? '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-						}}
-					>
+					{/* Multi-step Form Preview */}
+					{formData.formType === 'multi-step' && formData.steps && formData.steps.length > 0 ? (
 						<div className="space-y-6">
-							{/* Form Fields */}
-							<div className="space-y-4">
-								{formData.fields.length === 0 ? (
-									<div className="text-center py-8" style={{ color: colors.mutedTextColor }}>
-										<BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-										<p>No fields added yet. Add some fields to see the preview.</p>
+							{formData.steps
+								.sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
+								.map((step, stepIndex) => {
+									const stepFields = formData.fields
+										.filter(field => field.step_id === step.id)
+										.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+
+									return (
+										<Card
+											key={step.id}
+											className="max-w-2xl mx-auto p-6 shadow-xl border-0"
+											style={{
+												backgroundColor: colors.cardBgColor,
+												borderColor: primaryColor + '20',
+												boxShadow: isDarkMode ? '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+											}}
+										>
+											<div className="space-y-6">
+												{/* Step Header */}
+												<div className="text-center pb-4 border-b" style={{ borderColor: primaryColor + '20' }}>
+													<h2 className="text-lg font-semibold" style={{ color: colors.textColor }}>
+														Step {stepIndex + 1}: {step.title}
+													</h2>
+													{step.description && (
+														<p className="text-sm mt-1" style={{ color: colors.mutedTextColor }}>
+															{step.description}
+														</p>
+													)}
+												</div>
+
+												{/* Step Fields */}
+												<div className="space-y-4">
+													{stepFields.length === 0 ? (
+														<div className="text-center py-8" style={{ color: colors.mutedTextColor }}>
+															<BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
+															<p className="text-sm">No fields in this step yet.</p>
+														</div>
+													) : (
+														stepFields.map(field => renderField(field))
+													)}
+												</div>
+
+												{/* Step Navigation (Preview Only) */}
+												<div className="flex justify-between items-center pt-4 border-t" style={{ borderColor: primaryColor + '20' }}>
+													<Button
+														variant="outline"
+														disabled
+														className="px-4 py-2"
+														style={{
+															borderColor: primaryColor + '40',
+															color: colors.mutedTextColor
+														}}
+													>
+														{stepIndex === 0 ? '← Previous' : '← Previous'}
+													</Button>
+													<span className="text-sm" style={{ color: colors.mutedTextColor }}>
+														{stepIndex + 1} of {formData.steps.length}
+													</span>
+													<Button
+														disabled
+														className="px-4 py-2"
+														style={{
+															background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`,
+															borderColor: primaryColor
+														}}
+													>
+														{stepIndex === formData.steps.length - 1 ? 'Submit →' : 'Next →'}
+													</Button>
+												</div>
+											</div>
+										</Card>
+									);
+								})}
+						</div>
+					) : (
+						/* Single Form Preview */
+						<Card
+							className="max-w-2xl mx-auto p-6 shadow-xl border-0"
+							style={{
+								backgroundColor: colors.cardBgColor,
+								borderColor: primaryColor + '20',
+								boxShadow: isDarkMode ? '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+							}}
+						>
+							<div className="space-y-6">
+								{/* Form Fields */}
+								<div className="space-y-4">
+									{formData.fields.length === 0 ? (
+										<div className="text-center py-8" style={{ color: colors.mutedTextColor }}>
+											<BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+											<p>No fields added yet. Add some fields to see the preview.</p>
+										</div>
+									) : (
+										formData.fields
+											.filter(field => !field.step_id) // Only show fields not assigned to steps
+											.sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
+											.map(field => renderField(field))
+									)}
+								</div>
+
+								{/* Submit Button */}
+								{formData.fields.length > 0 && (
+									<div className="pt-6">
+										<Button
+											className="w-full inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-medium shadow hover:shadow-lg transition-all duration-200 text-white"
+											style={{
+												background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`,
+												borderColor: primaryColor,
+												boxShadow: `0 4px 14px 0 ${primaryColor}40`
+											}}
+											disabled
+										>
+											✓ Submit Form
+										</Button>
 									</div>
-								) : (
-									formData.fields
-										.sort((a, b) => a.order_index - b.order_index)
-										.map(field => renderField(field))
 								)}
 							</div>
-
-							{/* Submit Button */}
-							{formData.fields.length > 0 && (
-								<div className="pt-6">
-									<Button
-										className="w-full inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-medium shadow hover:shadow-lg transition-all duration-200 text-white"
-										style={{
-											background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`,
-											borderColor: primaryColor,
-											boxShadow: `0 4px 14px 0 ${primaryColor}40`
-										}}
-										disabled
-									>
-										✓ Submit Form
-									</Button>
-								</div>
-							)}
-						</div>
-					</Card>
+						</Card>
+					)}
 				</div>
 
 				{/* Form Info Footer */}
@@ -434,7 +524,11 @@ export default function FormPreviewModal({ isOpen, onClose, formData }: FormPrev
 							<h4 className="font-semibold">Form Details</h4>
 							<div className="space-y-1 text-sm text-muted-foreground">
 								<p><strong>Title:</strong> {formData.title || 'Untitled Form'}</p>
+								<p><strong>Type:</strong> {formData.formType === 'multi-step' ? 'Multi-step' : 'Single'}</p>
 								<p><strong>Fields:</strong> {formData.fields.length}</p>
+								{formData.formType === 'multi-step' && formData.steps && (
+									<p><strong>Steps:</strong> {formData.steps.length}</p>
+								)}
 								<p><strong>Font:</strong> {formData.fontFamily}</p>
 							</div>
 						</div>

@@ -786,7 +786,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 						<div
 							className="w-full h-48 rounded-lg border border-border cursor-crosshair relative select-none"
 							style={{
-								background: `linear-gradient(to right, white, hsl(${hue}, 100%, 50%)), linear-gradient(to top, black, transparent)`
+								background: `linear-gradient(to bottom, transparent, black), linear-gradient(to right, white, hsl(${hue}, 100%, 50%))`
 							}}
 							onClick={handleGradientInteraction}
 							onMouseDown={(e) => handleMouseDown(e, 'gradient')}
@@ -820,75 +820,22 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 						</div>
 					</div>
 
-					{/* Color Format Inputs */}
-					<div className="grid grid-cols-2 gap-3 text-sm">
-						<div>
-							<Label className="text-xs text-muted-foreground">RGB</Label>
-							<div className="flex items-center space-x-1">
-								<Input
-									value={`${rgb.r}, ${rgb.g}, ${rgb.b}`}
-									readOnly
-									className="text-xs font-mono"
-								/>
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={() => copyToClipboard(`${rgb.r}, ${rgb.g}, ${rgb.b}`)}
-								>
-									<Copy className="h-3 w-3" />
-								</Button>
-							</div>
-						</div>
-						<div>
-							<Label className="text-xs text-muted-foreground">HSV</Label>
-							<div className="flex items-center space-x-1">
-								<Input
-									value={`${hsv.h}°, ${hsv.s}%, ${hsv.v}%`}
-									readOnly
-									className="text-xs font-mono"
-								/>
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={() => copyToClipboard(`${hsv.h}°, ${hsv.s}%, ${hsv.v}%`)}
-								>
-									<Copy className="h-3 w-3" />
-								</Button>
-							</div>
-						</div>
-						<div>
-							<Label className="text-xs text-muted-foreground">HSL</Label>
-							<div className="flex items-center space-x-1">
-								<Input
-									value={`${hsl.h}°, ${hsl.s}%, ${hsl.l}%`}
-									readOnly
-									className="text-xs font-mono"
-								/>
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={() => copyToClipboard(`${hsl.h}°, ${hsl.s}%, ${hsl.l}%`)}
-								>
-									<Copy className="h-3 w-3" />
-								</Button>
-							</div>
-						</div>
-						<div>
-							<Label className="text-xs text-muted-foreground">HEX</Label>
-							<div className="flex items-center space-x-1">
-								<Input
-									value={hex}
-									readOnly
-									className="text-xs font-mono"
-								/>
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={() => copyToClipboard(hex)}
-								>
-									<Copy className="h-3 w-3" />
-								</Button>
-							</div>
+					{/* HEX Input */}
+					<div className="text-sm">
+						<Label className="text-xs text-muted-foreground">HEX</Label>
+						<div className="flex items-center space-x-1">
+							<Input
+								value={hex}
+								readOnly
+								className="text-xs font-mono"
+							/>
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={() => copyToClipboard(hex)}
+							>
+								<Copy className="h-3 w-3" />
+							</Button>
 						</div>
 					</div>
 
@@ -2140,6 +2087,7 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 				formData={{
 					title: localFormTitle,
 					description: localFormDescription,
+					formType: localFormType,
 					fields: localFields.map(field => ({
 						id: field.id,
 						type: field.type,
@@ -2147,7 +2095,15 @@ export function SimplifiedFormBuilder({ companyId, formId, initialTemplate }: Si
 						placeholder: field.placeholder,
 						content: field.content,
 						required: field.required || false,
-						options: field.options
+						options: field.options,
+						step_id: field.step_id,
+						order_index: field.order_index
+					})),
+					steps: localSteps.map(step => ({
+						id: step.id,
+						title: step.title,
+						description: step.description,
+						order_index: step.order_index
 					})),
 					primaryColor: localButtonColor,
 					backgroundColor: localBackgroundColor,
