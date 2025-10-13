@@ -45,7 +45,7 @@ export default function DashboardPageClient({
 	}, []);
 
 	// For non-admin users, show only member view without tabs
-	if (!isAdmin) {
+	if (!isAdmin && user) {
 		return (
 			<div className="min-h-screen bg-background">
 				{/* Fixed Header */}
