@@ -22,7 +22,9 @@ export default async function FormResponsesPage({ params }: FormResponsesPagePro
 			companyId,
 		});
 
-		if (!result.hasAccess) {
+		// Allow access for both admins and members (customers)
+		// Only block if user truly has no access to the company
+		if (!result.hasAccess && result.accessLevel === 'no_access') {
 			redirect('/dashboard');
 		}
 

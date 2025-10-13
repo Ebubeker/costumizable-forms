@@ -22,7 +22,19 @@ export default async function FormSubmitPage({ params }: FormSubmitPageProps) {
 			companyId,
 		});
 
-		if (!result.hasAccess) {
+		// Handle different access levels - same logic as main dashboard
+		let finalAccessLevel: 'admin' | 'no_access' | 'customer';
+
+		if (result.accessLevel === 'admin') {
+			finalAccessLevel = 'admin';
+		} else {
+			// Both 'customer' and 'no_access' get member view
+			finalAccessLevel = 'customer';
+		}
+
+		// Allow access for both admins and members (customers)
+		// Only block if user truly has no access to the company
+		if (!result.hasAccess && result.accessLevel === 'no_access') {
 			redirect('/dashboard');
 		}
 
