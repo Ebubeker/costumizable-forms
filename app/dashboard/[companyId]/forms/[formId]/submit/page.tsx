@@ -34,9 +34,9 @@ export default async function FormSubmitPage({ params }: FormSubmitPageProps) {
 
 		// Allow access for both admins and members (customers)
 		// Only block if user truly has no access to the company
-		if (!result.hasAccess && result.accessLevel === 'no_access') {
-			redirect('/dashboard');
-		}
+		// if (!result.hasAccess && result.accessLevel === 'no_access') {
+		// 	redirect('/dashboard');
+		// }
 
 		return (
 			<FormSubmitPageClient
