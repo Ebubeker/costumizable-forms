@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 			.select('*')
 			.eq('company_id', companyId)
 			.eq('is_active', true)
-			.order('created_at', { ascending: false });
+			.order('order_index', { ascending: true });
 
 		if (formsError) {
 			console.error('Error fetching forms:', formsError);

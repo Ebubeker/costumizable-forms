@@ -14,7 +14,7 @@ export class FormsService {
 			.select('*')
 			.eq('company_id', companyId)
 			.eq('is_active', true)
-			.order('created_at', { ascending: false });
+			.order('order_index', { ascending: true });
 
 		if (formsError) {
 			console.error('Error fetching forms:', formsError);
@@ -224,7 +224,7 @@ export class FormsService {
 			.from('forms')
 			.select('*')
 			.eq('company_id', companyId)
-			.order('created_at', { ascending: false });
+			.order('order_index', { ascending: true });
 
 		if (formsError) {
 			console.error('Error fetching forms:', formsError);
@@ -264,5 +264,20 @@ export class FormsService {
 		);
 
 		return formsWithData;
+	}
+
+	static async reorderForms(formIds: string[], companyId: string): Promise<void> {
+		const response = await fetch('/api/forms/reorder', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ formIds, companyId }),
+		});
+
+		if (!response.ok) {
+			const error = await response.text();
+			throw new Error(error || 'Failed to reorder forms');
+		}
 	}
 }

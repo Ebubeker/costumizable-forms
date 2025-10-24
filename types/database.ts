@@ -14,6 +14,7 @@ export interface Database {
 					settings: Record<string, any>;
 					form_type: 'single' | 'multi-step';
 					use_default_colors: boolean | null;
+					order_index: number;
 				};
 				Insert: {
 					id?: string;
@@ -27,6 +28,7 @@ export interface Database {
 					settings?: Record<string, any>;
 					form_type?: 'single' | 'multi-step';
 					use_default_colors?: boolean | null;
+					order_index?: number;
 				};
 				Update: {
 					id?: string;
@@ -40,6 +42,7 @@ export interface Database {
 					settings?: Record<string, any>;
 					form_type?: 'single' | 'multi-step';
 					use_default_colors?: boolean | null;
+					order_index?: number;
 				};
 			};
 			form_fields: {
