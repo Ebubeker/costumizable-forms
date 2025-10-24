@@ -86,7 +86,13 @@ function SortableFormCard({ form, companyId, resolvedTheme, onDelete, onToggleAc
 								<div
 									{...attributes}
 									{...listeners}
-									className="cursor-grab active:cursor-grabbing p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-md transition-colors duration-200 group/handle"
+									className="cursor-grab active:cursor-grabbing p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-md transition-colors duration-200 group/handle border border-transparent hover:border-blue-300"
+									onMouseDown={(e) => {
+										console.log('🖱️ MOUSE DOWN on drag handle:', form.title);
+									}}
+									onMouseUp={(e) => {
+										console.log('🖱️ MOUSE UP on drag handle:', form.title);
+									}}
 								>
 									<GripVertical className="h-4 w-4 text-gray-400 group-hover/handle:text-blue-500 transition-colors duration-200" />
 								</div>
@@ -202,19 +208,23 @@ export function AdminFormsView({ companyId, userId }: AdminFormsViewProps) {
 	const [error, setError] = useState<string | null>(null);
 	const [isReordering, setIsReordering] = useState(false);
 	const [activeId, setActiveId] = useState<string | null>(null);
+	const [hasReordered, setHasReordered] = useState(false);
 	const { toast } = useToast();
 	const { resolvedTheme } = useTheme();
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
-				distance: 8,
+				distance: 3, // Reduced distance for easier activation
 			},
 		}),
 		useSensor(KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates,
 		})
 	);
+
+	// Add sensor debugging
+	console.log('🎯 Sensors configured:', sensors.length);
 
 	const loadForms = useCallback(async () => {
 		try {
@@ -265,20 +275,27 @@ export function AdminFormsView({ companyId, userId }: AdminFormsViewProps) {
 	};
 
 	const handleDragStart = useCallback((event: DragStartEvent) => {
+		console.log('🚀 DRAG START:', { activeId: event.active.id });
 		setActiveId(event.active.id as string);
+		setHasReordered(false); // Reset reorder flag
 	}, []);
 
 	const handleDragOver = useCallback((event: DragOverEvent) => {
 		const { active, over } = event;
+		console.log('🔄 DRAG OVER:', { activeId: active.id, overId: over?.id });
 
 		if (over && active.id !== over.id) {
+			console.log('📝 Updating form order during drag');
 			setForms((prevForms) => {
 				const oldIndex = prevForms.findIndex(form => form.id === active.id);
 				const newIndex = prevForms.findIndex(form => form.id === over.id);
 
 				if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+					console.log('✅ Moving form from index', oldIndex, 'to', newIndex);
+					setHasReordered(true); // Mark that we've reordered
 					return arrayMove(prevForms, oldIndex, newIndex);
 				}
+				console.log('❌ No move needed or invalid indices');
 				return prevForms;
 			});
 		}
@@ -286,36 +303,65 @@ export function AdminFormsView({ companyId, userId }: AdminFormsViewProps) {
 
 	const handleDragEnd = useCallback(async (event: DragEndEvent) => {
 		const { active, over } = event;
+		console.log('🏁 DRAG END:', {
+			activeId: active.id,
+			overId: over?.id,
+			hasReordered,
+			willSave: hasReordered
+		});
+
 		setActiveId(null);
 
-		if (over && active.id !== over.id) {
+		if (hasReordered) {
+			console.log('💾 STARTING SAVE PROCESS - Forms were reordered');
 			setIsReordering(true);
 
 			try {
+				console.log('📋 Current form order:', forms.map(f => ({ id: f.id, title: f.title })));
+
 				// Save the current order to the database
 				const formIds = forms.map(form => form.id);
+				console.log('📤 Sending form IDs:', formIds);
+				console.log('🏢 Company ID:', companyId);
+
 				await FormsService.reorderForms(formIds, companyId);
+
+				console.log('✅ Reorder API call successful - keeping optimistic updates');
 
 				toast({
 					title: "Forms Reordered",
 					description: "The form order has been saved successfully.",
 				});
 			} catch (err) {
-				// Reload forms from server if save fails
+				console.error('❌ Reorder failed:', err);
+				// Only reload on error to revert optimistic updates
+				console.log('🔄 Reloading forms to revert changes...');
 				await loadForms();
 				toast({
 					variant: "destructive",
 					title: "Reorder Failed",
-					description: "Failed to save form order. Please try again.",
+					description: `Failed to save form order: ${err instanceof Error ? err.message : 'Unknown error'}`,
 				});
 			} finally {
 				setIsReordering(false);
 			}
+		} else {
+			console.log('🚫 NO SAVE - No reordering occurred:', {
+				hasOver: !!over,
+				activeId: active.id,
+				overId: over?.id,
+				hasReordered
+			});
 		}
-	}, [forms, companyId, toast]);
+
+		// Reset the reorder flag for next drag
+		setHasReordered(false);
+	}, [forms, companyId, toast, loadForms, hasReordered]);
 
 	const handleDragCancel = useCallback(() => {
+		console.log('🚫 DRAG CANCELLED');
 		setActiveId(null);
+		setHasReordered(false); // Reset reorder flag
 		// Reload forms to reset any optimistic updates
 		loadForms();
 	}, [loadForms]);
@@ -389,6 +435,15 @@ export function AdminFormsView({ companyId, userId }: AdminFormsViewProps) {
 				</Card>
 			) : (
 				<div className="relative">
+					{/* Debug info */}
+					{process.env.NODE_ENV === 'development' && (
+						<div className="mb-4 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs">
+							<strong>Debug Info:</strong> {forms.length} forms loaded, IDs: {forms.map(f => f.id.slice(-4)).join(', ')}
+							{activeId && <div>Active: {activeId.slice(-4)}</div>}
+							{hasReordered && <div className="text-green-600">✅ Has reordered</div>}
+						</div>
+					)}
+
 					{isReordering && (
 						<div className="absolute top-0 left-0 right-0 bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-4 z-10">
 							<div className="flex items-center gap-2">

@@ -267,6 +267,8 @@ export class FormsService {
 	}
 
 	static async reorderForms(formIds: string[], companyId: string): Promise<void> {
+		console.log('FormsService: Sending reorder request', { formIds, companyId });
+
 		const response = await fetch('/api/forms/reorder', {
 			method: 'POST',
 			headers: {
@@ -275,9 +277,23 @@ export class FormsService {
 			body: JSON.stringify({ formIds, companyId }),
 		});
 
+		console.log('FormsService: Response status', response.status);
+
 		if (!response.ok) {
-			const error = await response.text();
-			throw new Error(error || 'Failed to reorder forms');
+			let errorMessage = 'Failed to reorder forms';
+			try {
+				const errorData = await response.json();
+				console.error('FormsService: Error response', errorData);
+				errorMessage = errorData.error || errorData.details || errorMessage;
+			} catch {
+				const errorText = await response.text();
+				console.error('FormsService: Error text', errorText);
+				errorMessage = errorText || errorMessage;
+			}
+			throw new Error(errorMessage);
 		}
+
+		const result = await response.json();
+		console.log('FormsService: Success response', result);
 	}
 }
