@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { whopSdk } from '@/lib/whop-sdk';
 
 export async function POST(
 	request: NextRequest,
@@ -19,6 +20,18 @@ export async function POST(
 		const ip = forwarded ? forwarded.split(',')[0] : request.headers.get('x-real-ip') || 'unknown';
 		const userAgent = request.headers.get('user-agent') || 'unknown';
 
+		// Get username from Whop SDK if submitted_by is provided
+		let username: string | null = null;
+		if (submitted_by) {
+			try {
+				const user = await whopSdk.users.getUser({ userId: submitted_by });
+				username = user.username || null;
+			} catch (error) {
+				console.warn('Could not fetch username from Whop SDK:', error);
+				// Continue without username if fetch fails
+			}
+		}
+
 		// Create form response
 		const { data: formResponse, error: responseError } = await supabaseAdmin
 			.from('form_responses')
@@ -26,7 +39,8 @@ export async function POST(
 				form_id: id,
 				submitted_by: submitted_by || null,
 				ip_address: ip,
-				user_agent: userAgent
+				user_agent: userAgent,
+				username: username
 			})
 			.select()
 			.single();

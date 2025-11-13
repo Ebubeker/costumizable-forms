@@ -126,6 +126,7 @@ export interface Database {
 					submitted_at: string;
 					ip_address: string | null;
 					user_agent: string | null;
+					username: string | null;
 				};
 				Insert: {
 					id?: string;
@@ -134,6 +135,7 @@ export interface Database {
 					submitted_at?: string;
 					ip_address?: string | null;
 					user_agent?: string | null;
+					username?: string | null;
 				};
 				Update: {
 					id?: string;
@@ -142,6 +144,7 @@ export interface Database {
 					submitted_at?: string;
 					ip_address?: string | null;
 					user_agent?: string | null;
+					username?: string | null;
 				};
 			};
 			form_response_data: {
@@ -212,6 +215,7 @@ export interface FormResponseWithData {
 	submitted_at: string;
 	ip_address: string | null;
 	user_agent: string | null;
+	username: string | null;
 	data: {
 		field_id: string;
 		field_label: string;

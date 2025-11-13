@@ -35,10 +35,10 @@ export async function GET(
 			submitted_at: response.submitted_at,
 			ip_address: response.ip_address,
 			user_agent: response.user_agent,
-			responses: response.form_response_data.map((item: any) => ({
+			username: response.username || null,
+			data: response.form_response_data.map((item: any) => ({
 				field_id: item.field_id,
 				field_label: item.form_fields?.label || 'Unlabeled Field',
-				field_type: item.form_fields?.type || 'unknown',
 				value: item.value
 			}))
 		}));
