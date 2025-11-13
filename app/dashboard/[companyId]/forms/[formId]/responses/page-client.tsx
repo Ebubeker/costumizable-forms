@@ -177,10 +177,10 @@ export default function FormResponsesPageClient({ formId, companyId }: FormRespo
 													<Calendar className="h-4 w-4" />
 													<span>{new Date(response.submitted_at).toLocaleString()}</span>
 												</div>
-												<div className="flex items-center space-x-1">
+												{/* <div className="flex items-center space-x-1">
 													<Globe className="h-4 w-4" />
 													<span>{response.ip_address}</span>
-												</div>
+												</div> */}
 											</div>
 										</div>
 										<Badge variant="secondary">
@@ -206,14 +206,14 @@ export default function FormResponsesPageClient({ formId, companyId }: FormRespo
 											</div>
 										))}
 									</div>
-									{response.user_agent && (
+									{/* {response.user_agent && (
 										<div className="mt-4 pt-4 border-t">
 											<div className="flex items-center space-x-1 text-xs text-muted-foreground">
 												<Monitor className="h-3 w-3" />
 												<span className="truncate">{response.user_agent}</span>
 											</div>
 										</div>
-									)}
+									)} */}
 								</CardContent>
 							</Card>
 						))}
