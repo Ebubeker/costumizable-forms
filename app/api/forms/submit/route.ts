@@ -17,14 +17,14 @@ export async function POST(request: NextRequest) {
 			'127.0.0.1';
 		const userAgent = request.headers.get('user-agent') || '';
 
-		// Get username from Whop SDK
-		let username: string | null = null;
+		// Get user name from Whop SDK
+		let userName: string | null = null;
 		try {
 			const user = await whopSdk.users.getUser({ userId: submittedBy });
-			username = user.username || null;
+			userName = user.name || null;
 		} catch (error) {
-			console.warn('Could not fetch username from Whop SDK:', error);
-			// Continue without username if fetch fails
+			console.warn('Could not fetch user name from Whop SDK:', error);
+			// Continue without user name if fetch fails
 		}
 
 		// Create the form response record
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 				submitted_by: submittedBy,
 				ip_address: ipAddress,
 				user_agent: userAgent,
-				username: username
+				username: userName // Saving name to username column
 			})
 			.select()
 			.single();

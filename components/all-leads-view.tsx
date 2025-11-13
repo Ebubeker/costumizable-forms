@@ -24,6 +24,7 @@ interface FormResponse {
 	submitted_at: string;
 	ip_address: string;
 	user_agent: string;
+	username: string | null;
 	responses: {
 		field_id: string;
 		field_label: string;
@@ -74,7 +75,9 @@ export default function AllLeadsView({ companyId, userId }: AllLeadsViewProps) {
 						const data = await response.json();
 						const formResponses = data.responses.map((resp: any) => ({
 							...resp,
-							form_title: form.title
+							form_title: form.title,
+							// Map 'data' field to 'responses' for compatibility
+							responses: resp.data || resp.responses || []
 						}));
 						allResponsesData.push(...formResponses);
 					}
@@ -375,7 +378,9 @@ export default function AllLeadsView({ companyId, userId }: AllLeadsViewProps) {
 															<div className="w-8 h-8 bg-gradient-to-br from-slate-400 to-slate-500 rounded-full flex items-center justify-center">
 																<User className="h-4 w-4 text-white" />
 															</div>
-															<span className="text-foreground font-medium">{response.submitted_by}</span>
+															<span className="text-foreground font-medium">
+																{response.username || response.submitted_by}
+															</span>
 														</div>
 													</td>
 													<td className="p-4 text-slate-600 dark:text-slate-400">

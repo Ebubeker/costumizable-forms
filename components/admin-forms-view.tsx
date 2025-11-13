@@ -436,13 +436,13 @@ export function AdminFormsView({ companyId, userId }: AdminFormsViewProps) {
 			) : (
 				<div className="relative">
 					{/* Debug info */}
-					{process.env.NODE_ENV === 'development' && (
+					{/* {process.env.NODE_ENV === 'development' && (
 						<div className="mb-4 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs">
 							<strong>Debug Info:</strong> {forms.length} forms loaded, IDs: {forms.map(f => f.id.slice(-4)).join(', ')}
 							{activeId && <div>Active: {activeId.slice(-4)}</div>}
 							{hasReordered && <div className="text-green-600">✅ Has reordered</div>}
 						</div>
-					)}
+					)} */}
 
 					{isReordering && (
 						<div className="absolute top-0 left-0 right-0 bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-4 z-10">

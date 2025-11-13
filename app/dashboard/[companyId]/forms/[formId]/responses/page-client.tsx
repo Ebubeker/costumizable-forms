@@ -16,6 +16,7 @@ interface FormResponse {
 	submitted_at: string;
 	ip_address: string;
 	user_agent: string;
+	username: string | null;
 	responses: {
 		field_id: string;
 		field_label: string;
@@ -54,7 +55,12 @@ export default function FormResponsesPageClient({ formId, companyId }: FormRespo
 					throw new Error('Failed to load responses');
 				}
 				const responsesData = await response.json();
-				setResponses(responsesData.responses || []);
+				// Map 'data' field to 'responses' for compatibility
+				const mappedResponses = (responsesData.responses || []).map((resp: any) => ({
+					...resp,
+					responses: resp.data || resp.responses || []
+				}));
+				setResponses(mappedResponses);
 			} catch (err) {
 				setError(err instanceof Error ? err.message : 'Failed to load data');
 			} finally {
@@ -165,7 +171,7 @@ export default function FormResponsesPageClient({ formId, companyId }: FormRespo
 											<div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
 												<div className="flex items-center space-x-1">
 													<User className="h-4 w-4" />
-													<span>{response.submitted_by}</span>
+													<span>{response.username || response.submitted_by}</span>
 												</div>
 												<div className="flex items-center space-x-1">
 													<Calendar className="h-4 w-4" />

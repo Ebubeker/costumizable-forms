@@ -20,15 +20,15 @@ export async function POST(
 		const ip = forwarded ? forwarded.split(',')[0] : request.headers.get('x-real-ip') || 'unknown';
 		const userAgent = request.headers.get('user-agent') || 'unknown';
 
-		// Get username from Whop SDK if submitted_by is provided
-		let username: string | null = null;
+		// Get user name from Whop SDK if submitted_by is provided
+		let userName: string | null = null;
 		if (submitted_by) {
 			try {
 				const user = await whopSdk.users.getUser({ userId: submitted_by });
-				username = user.username || null;
+				userName = user.name || null;
 			} catch (error) {
-				console.warn('Could not fetch username from Whop SDK:', error);
-				// Continue without username if fetch fails
+				console.warn('Could not fetch user name from Whop SDK:', error);
+				// Continue without user name if fetch fails
 			}
 		}
 
@@ -40,7 +40,7 @@ export async function POST(
 				submitted_by: submitted_by || null,
 				ip_address: ip,
 				user_agent: userAgent,
-				username: username
+				username: userName // Saving name to username column
 			})
 			.select()
 			.single();
