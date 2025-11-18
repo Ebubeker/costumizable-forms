@@ -79,12 +79,17 @@ export default function AllLeadsView({ companyId, userId }: AllLeadsViewProps) {
 							// Map 'data' field to 'responses' for compatibility
 							responses: resp.data || resp.responses || []
 						}));
+						console.log(`Loaded ${formResponses.length} responses for form "${form.title}" (${form.id})`);
 						allResponsesData.push(...formResponses);
+					} else {
+						console.error(`Failed to fetch responses for form ${form.id}:`, response.status, response.statusText);
 					}
 				} catch (err) {
 					console.error(`Error loading responses for form ${form.id}:`, err);
 				}
 			}
+
+			console.log(`Total responses loaded across all forms: ${allResponsesData.length}`);
 
 			// Sort all responses by submitted_at in descending order (newest first)
 			allResponsesData.sort((a, b) =>

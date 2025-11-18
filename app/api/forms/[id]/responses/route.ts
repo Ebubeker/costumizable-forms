@@ -20,12 +20,16 @@ export async function GET(
         )
       `)
 			.eq('form_id', id)
-			.order('submitted_at', { ascending: false });
+			.order('submitted_at', { ascending: false })
+			.limit(10000); // Explicitly set a high limit to ensure all responses are fetched
 
 		if (error) {
 			console.error('Error fetching form responses:', error);
 			return NextResponse.json({ error: 'Failed to fetch responses' }, { status: 500 });
 		}
+
+		// Log the number of responses fetched for debugging
+		console.log(`Fetched ${responses?.length || 0} responses for form ${id}`);
 
 		// Transform the data to a more usable format
 		const transformedResponses = responses.map(response => ({
