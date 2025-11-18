@@ -86,6 +86,11 @@ export default function AllLeadsView({ companyId, userId }: AllLeadsViewProps) {
 				}
 			}
 
+			// Sort all responses by submitted_at in descending order (newest first)
+			allResponsesData.sort((a, b) =>
+				new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
+			);
+
 			setAllResponses(allResponsesData);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to load data');

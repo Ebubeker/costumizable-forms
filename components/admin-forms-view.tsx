@@ -78,10 +78,10 @@ function SortableFormCard({ form, companyId, resolvedTheme, onDelete, onToggleAc
 			style={style}
 			className={`h-full min-h-[240px] flex flex-col border shadow-lg hover:shadow-xl group bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border-slate-200/50 dark:border-slate-700/50 ${!form.is_active ? 'opacity-60' : ''} ${isDragging ? '' : 'transition-shadow duration-200'}`}
 		>
-			<CardHeader className="pb-4">
-				<div className="flex justify-between items-start">
-					<div className="flex-1">
-						<div className="flex items-center justify-between">
+							<CardHeader className="pb-4">
+								<div className="flex justify-between items-start">
+									<div className="flex-1">
+										<div className="flex items-center justify-between">
 							<div className="flex items-center gap-2">
 								<div
 									{...attributes}
@@ -96,109 +96,109 @@ function SortableFormCard({ form, companyId, resolvedTheme, onDelete, onToggleAc
 								>
 									<GripVertical className="h-4 w-4 text-gray-400 group-hover/handle:text-blue-500 transition-colors duration-200" />
 								</div>
-								<CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-									{form.title}
-								</CardTitle>
+											<CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+												{form.title}
+											</CardTitle>
 							</div>
-							<div className="flex items-center gap-2 ml-4">
-								<span className="text-xs text-muted-foreground">
-									{form.is_active ? 'Active' : 'Inactive'}
-								</span>
-								<Switch
-									checked={form.is_active}
+											<div className="flex items-center gap-2 ml-4">
+												<span className="text-xs text-muted-foreground">
+													{form.is_active ? 'Active' : 'Inactive'}
+												</span>
+												<Switch
+													checked={form.is_active}
 									onCheckedChange={() => onToggleActivity(form.id)}
-									className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-300"
-								/>
-							</div>
-						</div>
-						{form.description && (
-							<p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
-								{form.description}
-							</p>
-						)}
-					</div>
-				</div>
-			</CardHeader>
-			<CardContent className="pt-0 flex flex-col justify-between h-full">
-				<div className="flex-1"></div>
-				<div className="space-y-3">
-					<div className="text-xs text-muted-foreground">
-						Created {new Date(form.created_at).toLocaleDateString()}
-					</div>
-					<div className="form-card-buttons">
-						<div className="form-card-buttons-group">
-							<Button
-								size="sm"
-								variant="outline"
-								asChild
-								className="form-card-button"
-								style={resolvedTheme === 'dark' ? {
-									borderColor: '#9ca3af',
-									color: '#f3f4f6',
-									backgroundColor: 'transparent'
-								} : {
-									borderColor: '#6b7280',
-									color: '#374151',
-									backgroundColor: 'transparent'
-								}}
-							>
-								<Link href={`/dashboard/${companyId}/forms/${form.id}/edit`}>
-									<Edit className="form-card-button-icon" />
-									<span className="form-card-button-text">Edit</span>
-								</Link>
-							</Button>
-							<Button
-								size="sm"
-								variant="outline"
-								asChild
-								className="form-card-button"
-								style={resolvedTheme === 'dark' ? {
-									borderColor: '#9ca3af',
-									color: '#f3f4f6',
-									backgroundColor: 'transparent'
-								} : {
-									borderColor: '#6b7280',
-									color: '#374151',
-									backgroundColor: 'transparent'
-								}}
-							>
-								<Link href={`/dashboard/${companyId}/forms/${form.id}`}>
-									<Eye className="form-card-button-icon" />
-									<span className="form-card-button-text">View</span>
-								</Link>
-							</Button>
-							<Button
-								size="sm"
-								variant="outline"
-								asChild
-								className="form-card-button"
-								style={resolvedTheme === 'dark' ? {
-									borderColor: '#9ca3af',
-									color: '#f3f4f6',
-									backgroundColor: 'transparent'
-								} : {
-									borderColor: '#6b7280',
-									color: '#374151',
-									backgroundColor: 'transparent'
-								}}
-							>
-								<Link href={`/dashboard/${companyId}/forms/${form.id}/responses`}>
-									<BarChart3 className="form-card-button-icon" />
-									<span className="form-card-button-text">Responses</span>
-								</Link>
-							</Button>
-						</div>
-						<Button
-							size="sm"
+													className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-300"
+												/>
+											</div>
+										</div>
+										{form.description && (
+											<p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
+												{form.description}
+											</p>
+										)}
+									</div>
+								</div>
+							</CardHeader>
+							<CardContent className="pt-0 flex flex-col justify-between h-full">
+								<div className="flex-1"></div>
+								<div className="space-y-3">
+									<div className="text-xs text-muted-foreground">
+										Created {new Date(form.created_at).toLocaleDateString()}
+									</div>
+									<div className="form-card-buttons">
+										<div className="form-card-buttons-group">
+											<Button
+												size="sm"
+												variant="outline"
+												asChild
+												className="form-card-button"
+												style={resolvedTheme === 'dark' ? {
+													borderColor: '#9ca3af',
+													color: '#f3f4f6',
+													backgroundColor: 'transparent'
+												} : {
+													borderColor: '#6b7280',
+													color: '#374151',
+													backgroundColor: 'transparent'
+												}}
+											>
+												<Link href={`/dashboard/${companyId}/forms/${form.id}/edit`}>
+													<Edit className="form-card-button-icon" />
+													<span className="form-card-button-text">Edit</span>
+												</Link>
+											</Button>
+											<Button
+												size="sm"
+												variant="outline"
+												asChild
+												className="form-card-button"
+												style={resolvedTheme === 'dark' ? {
+													borderColor: '#9ca3af',
+													color: '#f3f4f6',
+													backgroundColor: 'transparent'
+												} : {
+													borderColor: '#6b7280',
+													color: '#374151',
+													backgroundColor: 'transparent'
+												}}
+											>
+												<Link href={`/dashboard/${companyId}/forms/${form.id}`}>
+													<Eye className="form-card-button-icon" />
+													<span className="form-card-button-text">View</span>
+												</Link>
+											</Button>
+											<Button
+												size="sm"
+												variant="outline"
+												asChild
+												className="form-card-button"
+												style={resolvedTheme === 'dark' ? {
+													borderColor: '#9ca3af',
+													color: '#f3f4f6',
+													backgroundColor: 'transparent'
+												} : {
+													borderColor: '#6b7280',
+													color: '#374151',
+													backgroundColor: 'transparent'
+												}}
+											>
+												<Link href={`/dashboard/${companyId}/forms/${form.id}/responses`}>
+													<BarChart3 className="form-card-button-icon" />
+													<span className="form-card-button-text">Responses</span>
+												</Link>
+											</Button>
+										</div>
+										<Button
+											size="sm"
 							onClick={() => onDelete(form.id)}
-							className="form-card-delete-button"
-						>
-							<Trash2 className="h-4 w-4" />
-						</Button>
-					</div>
-				</div>
-			</CardContent>
-		</Card>
+											className="form-card-delete-button"
+										>
+											<Trash2 className="h-4 w-4" />
+										</Button>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
 	);
 }
 
