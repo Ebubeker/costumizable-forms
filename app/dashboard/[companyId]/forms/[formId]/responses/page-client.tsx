@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +32,8 @@ interface FormResponsesPageClientProps {
 }
 
 export default function FormResponsesPageClient({ formId, companyId }: FormResponsesPageClientProps) {
+	const searchParams = useSearchParams();
+	const responseId = searchParams.get('responseId');
 	const [form, setForm] = useState<FormWithFields | null>(null);
 	const [responses, setResponses] = useState<FormResponse[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -60,7 +63,13 @@ export default function FormResponsesPageClient({ formId, companyId }: FormRespo
 					...resp,
 					responses: resp.data || resp.responses || []
 				}));
-				setResponses(mappedResponses);
+
+				// Filter to show only the specific response if responseId is provided
+				const filteredResponses = responseId
+					? mappedResponses.filter((r: FormResponse) => r.id === responseId)
+					: mappedResponses;
+
+				setResponses(filteredResponses);
 			} catch (err) {
 				setError(err instanceof Error ? err.message : 'Failed to load data');
 			} finally {
@@ -69,7 +78,7 @@ export default function FormResponsesPageClient({ formId, companyId }: FormRespo
 		};
 
 		loadData();
-	}, [formId]);
+	}, [formId, responseId]);
 
 	// Set document title
 	useEffect(() => {
@@ -127,9 +136,11 @@ export default function FormResponsesPageClient({ formId, companyId }: FormRespo
 								</Link>
 							</Button>
 							<div>
-								<h1 className="text-2xl font-bold text-foreground">Form Responses</h1>
+								<h1 className="text-2xl font-bold text-foreground">
+									{responseId ? 'Viewing Response' : 'Form Responses'}
+								</h1>
 								<p className="text-sm text-muted-foreground mt-1">
-									{form.title} - {responses.length} {responses.length === 1 ? 'Response' : 'Responses'}
+									{form.title} - {responseId ? 'Single Response' : `${responses.length} ${responses.length === 1 ? 'Response' : 'Responses'}`}
 								</p>
 							</div>
 						</div>

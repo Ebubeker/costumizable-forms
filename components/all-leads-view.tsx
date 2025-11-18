@@ -368,20 +368,10 @@ export default function AllLeadsView({ companyId, userId }: AllLeadsViewProps) {
 											return (
 												<tr key={response.id} className={`border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-all duration-200 ${index % 2 === 0 ? 'bg-white/50 dark:bg-slate-900/30' : 'bg-slate-50/30 dark:bg-slate-800/20'}`}>
 													<td className="p-4">
-														<Tooltip>
-															<TooltipTrigger asChild>
-																<Link
-																	href={`/dashboard/${companyId}/forms/${response.form_id}`}
-																	className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold transition-colors flex items-center gap-2"
-																>
-																	<div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-																	{response.form_title}
-																</Link>
-															</TooltipTrigger>
-															<TooltipContent>
-																<p>Open form</p>
-															</TooltipContent>
-														</Tooltip>
+														<div className="text-foreground font-semibold flex items-center gap-2">
+															<div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full"></div>
+															{response.form_title}
+														</div>
 													</td>
 													<td className="p-4">
 														<div className="flex items-center gap-2">
@@ -406,7 +396,7 @@ export default function AllLeadsView({ companyId, userId }: AllLeadsViewProps) {
 															asChild
 															className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium shadow-sm hover:shadow-md bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200"
 														>
-															<Link href={`/dashboard/${companyId}/forms/${response.form_id}/responses`}>
+															<Link href={`/dashboard/${companyId}/forms/${response.form_id}/responses?responseId=${response.id}`}>
 																<Eye className="h-4 w-4" />
 																View Details
 															</Link>
